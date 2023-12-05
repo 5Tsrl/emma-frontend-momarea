@@ -51,7 +51,8 @@
 				</div>
 		
 				<l-map id="my-map"  :zoom="zoom" :center="center" :options="getMapOptions"
-					@update:center="centerUpdate" @update:zoom="zoomUpdate" ref="map">
+					@update:center="centerUpdate" @update:zoom="zoomUpdate" ref="map"
+					@click="clickCasa">
 					<l-tile-layer :url="getTilesUrl" :attribution="getMapAttribution" :options="getLayerOptions" />
 
 					<span v-if="offices_layer.length > 0">
@@ -75,6 +76,7 @@
 						base-url="http://geomap.reteunitaria.piemonte.it/ws/siccms/coto-01/wmsg01/wms_sicc124_mobilita"
 						:visible="true" :transparent="true" format="image/png">
 					</l-wms-tile-layer>
+					<l-draw-toolbar position="topleft" ref="draw"/>
 				</l-map>
 		</div>		
     </div>
@@ -87,17 +89,7 @@ import { latLng } from "leaflet";
 import { LMap, LTileLayer, LMarker, LCircleMarker, LWMSTileLayer, LPopup } from "vue2-leaflet";
 import "leaflet/dist/leaflet.css";
 import UserService from "@/services/user.service";
-
-// const companyIcon = L.divIcon({
-// 	html: "<i class=\"fa fa-building-o fa-2x\"></i>",
-// 	iconSize: [20, 20],
-// 	className: "myDivIcon",
-// });
-// const companyIcongre = L.divIcon({
-// 	html: "<i class=\"fa fa-building-o fa-2x\" style=\"color:green\"></i>",
-// 	iconSize: [20, 20],
-// 	className: "myDivIcon",
-// });
+import LDrawToolbar from 'vue2-leaflet-draw-toolbar';
 
 export default {
 	mixins: [Util],
@@ -107,7 +99,8 @@ export default {
 		LTileLayer,
 		LCircleMarker,
 		LPopup,
-		"l-wms-tile-layer": LWMSTileLayer,				
+		"l-wms-tile-layer": LWMSTileLayer,		
+		LDrawToolbar,		
 	},
 	async created () {	
 		this.loading = true;	
@@ -138,6 +131,56 @@ export default {
 					id: null,
 					name: "Tutte",
 				});
+	},
+	mounted() {
+		// Disabling a toolbar item
+		// this.$refs.draw.drawOptions.circle = false;
+		// this.$refs.map.mapObject.addControl(this.$refs.draw.draw,circle = false);
+		// this.$refs.map.mapObject.addControl(this.$refs.draw.draw.marker = false);
+		// this.$refs.map.mapObject.addControl(this.$refs.draw.draw.polyline = false);
+
+		// this.$refs.map.mapObject.drawOptions.circle = false;
+		// console.log("drawOptions",this.$refs.map.mapObject.draw);
+		// LDrawToolbar.initialize()
+		// this.$refs.map.mapObject.drawControl.setDrawingOptions({
+		// 	position: 'topright',
+		// 	draw: {
+		// 		circle: false, 
+		// 		marker: false,	
+		// 		polyline: false, 
+		// 		}  // <-- this does nothing
+		// 	});
+		// this.$refs.map.mapObject.removeControl(drawControl);
+		// this.$refs.map.mapObject.addControl(drawControl);
+		// this.$refs.map.mapObject.drawControl._toolbars.edit.options
+
+		new L.Toolbar2.DrawToolbar({
+			position: 'topright',
+			draw: {
+				circle: false, 
+				marker: false,	
+				polyline: false, 
+				}  // <-- this does nothing
+      }).addTo(this.$refs.map.mapObject);
+
+		this.$refs.map.mapObject.on("draw:created", (e) => {
+			console.log("draw:created", e);
+			if (e.layerType === 'rectangle' || e.layerType === 'polygon') {
+				console.log("getLatLngs", e.layer.getLatLngs());
+				console.log("getBounds", e.layer.getBounds());
+				e.layer.addTo(this.$refs.map.mapObject);
+   			}
+			
+			// this.$refs.map.mapObject.addLayer(e.layer);
+		});
+
+		
+		// this.$refs.map.mapObject.on("draw:edited", (e) => {
+		// 	console.log("draw:edited", e);
+		// });
+		// this.$refs.map.mapObject.on("draw:deleted", (e) => {
+		// 	console.log("draw:deleted", e);
+		// });
 	},
 	data() {
 		return {
@@ -309,8 +352,42 @@ export default {
 			this.city =this.offices_city[0].id;
 		console.log(this.offices_layer)
 	  },
+	  clickCasa(e) {
+			console.log("latlng",e.latlng);
+			// this.EditToolbar.editLayer(this.$refs.map, e.latlng);
+			// console.log("map",e.target.layer);
+			// this.$refs.map.mapObject.eachLayer(function(layer){
+			// 		console.log("layer",layer);
+			// 	});
+			console.log("draw",this.$refs.draw);
+			// this.$refs.draw.setDrawingOptions({
+			// position: 'topright',
+			// draw: {
+			// 	circle: false, 
+			// 	marker: false,	
+			// 	polyline: false, 
+			// 	}  // <-- this does nothing
+			// });
+			// console.log("map.layers",this.$refs.map.getLayers());
+			// this.getPolygonCoordinates();
+			// if (this.casaMarker) {
+			// 	this.$refs.map.mapObject.removeLayer(this.casaMarker);
+			// }
+			// this.casaMarker = marker(this.casa.latLng, {
+			// 	icon: homeIcon,
+			// 	draggable: true, // permetto all'utente di correggere la posizione all'occorrenza
+			// }).addTo(this.$refs.map.mapObject);
+		},
+		// getPolygonCoordinates() {
+		// 			const polygon = this.$refs.map.mapObject._layers[Object.keys(this.$refs.map.mapObject._layers)[0]]; // Assuming the polygon is the first layer on the map
+		// 			const coordinates = polygon.getLatLngs()[0]; // Assuming the polygon has only one outer ring
+
+		// 			// Do something with the coordinates
+		// 			console.log("Polygon coordinates:", coordinates);
+		// 		},
 
 	},
+	
 };
 </script>
 
