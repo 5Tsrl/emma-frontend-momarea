@@ -7,8 +7,8 @@ const routes = [
 		redirect: "/dashboard",
 		children: [
 			{
-				path: "/coworking",
-				name: "Spazi di Coworking",
+				path: "/momaera",
+				name: "Spazi di Moma Area",
 				meta: { authorize: ["admin", "moma","moma_area", "user"]  },
 				// lazy-loaded
 				component: pageComponent("index"),
@@ -25,7 +25,7 @@ const routes = [
 function pageComponent(name) {	
 	var res;	
 		try {
-			res = require("@/extra/Coworking/pages/" + name + ".vue").default;
+			res = require("@/extra/Momarea/pages/" + name + ".vue").default;
 		} catch (e) {
 			console.log("Errore route");
 			res = require("./pages/" + name + ".vue").default;
