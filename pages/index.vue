@@ -51,8 +51,7 @@
 				</div>
 		
 				<l-map id="my-map"  :zoom="zoom" :center="center" :options="getMapOptions"
-					@update:center="centerUpdate" @update:zoom="zoomUpdate" ref="map"
-					@click="clickCasa">
+					@update:center="centerUpdate" @update:zoom="zoomUpdate" ref="map">
 					<l-tile-layer :url="getTilesUrl" :attribution="getMapAttribution" :options="getLayerOptions" />
 
 					<span v-if="offices_layer.length > 0">
@@ -70,13 +69,21 @@
 								
 							</l-popup>
 						</l-marker>
-					</span>					
+					</span>	
+					<l-feature-group ref="layers">
+						<span v-if="polygons.length > 0">
+						<l-polygon v-for="polygon in polygons" :key="polygon.id" :lat-lngs="polygon.latlngs" :options="{ color: 'red' }" @click="clickCasa" ref="poly">
+							</l-polygon>
+					</span>		
+
+					</l-feature-group>		
+					
 
 					<l-wms-tile-layer :key="wmsRenderKey"
 						base-url="http://geomap.reteunitaria.piemonte.it/ws/siccms/coto-01/wmsg01/wms_sicc124_mobilita"
 						:visible="true" :transparent="true" format="image/png">
 					</l-wms-tile-layer>
-					<l-draw-toolbar position="topleft" ref="draw"/>
+					<!-- <l-draw-toolbar position="topright" ref="draw"/> -->
 				</l-map>
 		</div>		
     </div>
@@ -86,7 +93,7 @@
 import Util from "@/mixing/util";
 import L from "leaflet";
 import { latLng } from "leaflet";
-import { LMap, LTileLayer, LMarker, LCircleMarker, LWMSTileLayer, LPopup } from "vue2-leaflet";
+import { LMap, LTileLayer, LMarker, LCircleMarker, LWMSTileLayer, LPopup, LPolygon } from "vue2-leaflet";
 import "leaflet/dist/leaflet.css";
 import UserService from "@/services/user.service";
 import LDrawToolbar from 'vue2-leaflet-draw-toolbar';
@@ -101,6 +108,7 @@ export default {
 		LPopup,
 		"l-wms-tile-layer": LWMSTileLayer,		
 		LDrawToolbar,		
+		LPolygon,
 	},
 	async created () {	
 		this.loading = true;	
@@ -126,13 +134,112 @@ export default {
 		this.loading = false;
 		this.fitMarkers();		
 		this.coworking_types=(await UserService.getCoworkingtypes()).data.types;
-		this.coworking_types.unshift(
-			{
-					id: null,
-					name: "Tutte",
-				});
+		console.log("cow_types",this.coworking_types);
+		// this.coworking_types.unshift(
+		// 	{
+		// 			id: null,
+		// 			name: "Tutte",
+		// 		});
+		let polygon = await UserService.getArea(1);
+	console.log("polygon",polygon);
+	let polygonarea = polygon.data.area.polygon;
+	
+	// become this string polygon=POLYGON((45.08 7.69,45.08 7.7,45.1 7.7,45.1 7.69,45.08 7.69)) to this.polygon: {
+//     latlngs: [[45.08 , 7.69], [45.08 , 7.7], [45.1 7.7], [45.1 7.69], [45.08 7.69]]
+//   },
+	this.polygon = {
+	latlngs: polygonarea.replace("POLYGON((","").replace("))","").split(",").map(function (item) {
+		return item.split(" ").map(function (item) {
+			return parseFloat(item);
+		});
+	})
+	};
+	this.polygons.push(this.polygon);
+
+		
+	// this.polygon = polygon.data.area.polygon.replace("POLYGON((","").replace("))","").split(",");
+	console.log("this.polygon",this.polygons);
+	// 	// add  L.Draw.Polygon to map using array of long lat
+	// var polygonmap = new L.Polygon(this.polygons[0].latlngs);
+
+	// // polygonmap.editing.enable();
+	// let editActions = [
+    //     L.Toolbar2.EditAction.Popup.Edit,
+    //     L.Toolbar2.EditAction.Popup.Delete,
+    //     L.Toolbar2.Action.extendOptions({
+    //       toolbarIcon: { 
+    //         className: 'leaflet-color-picker', 
+    //         html: '<i class="fas fa-fill-drip"></i>' 
+    //       },
+    //       subToolbar: new L.Toolbar2({ actions: [
+    //         L.ColorPicker.extendOptions({ color: '#db1d0f' }),
+    //         L.ColorPicker.extendOptions({ color: '#025100' }),
+    //         L.ColorPicker.extendOptions({ color: '#ffff00' }),
+    //         L.ColorPicker.extendOptions({ color: '#0000ff' })
+    //       ]})
+    //     })
+    //   ];
+	// polygonmap.on('click', function(event) {
+    //       this.editMode = true;
+    //       new L.Toolbar2.EditToolbar.Popup(event.latlng, {
+    //         actions: editActions
+    //       });
+    //     });
+        
+	// polygonmap.addTo(this.$refs.draw);
+	// this.$refs.map.mapObject.addLayer(polygonmap);
+	// polygonmap.addTo(editActions)
+		
+		
 	},
 	mounted() {
+		this.$nextTick(() => {
+      const map =this.$refs.map.mapObject;
+
+      let editActions = [
+        L.Toolbar2.EditAction.Popup.Edit,
+        L.Toolbar2.EditAction.Popup.Delete,
+        L.Toolbar2.Action.extendOptions({
+          toolbarIcon: { 
+            className: 'leaflet-color-picker', 
+            html: '<i class="fas fa-fill-drip"></i>' 
+          },
+          subToolbar: new L.Toolbar2({ actions: [
+            L.ColorPicker.extendOptions({ color: '#db1d0f' }),
+            L.ColorPicker.extendOptions({ color: '#025100' }),
+            L.ColorPicker.extendOptions({ color: '#ffff00' }),
+            L.ColorPicker.extendOptions({ color: '#0000ff' })
+          ]})
+        })
+      ];
+
+      new L.Toolbar2.DrawToolbar({
+          position: this.position,
+      }).addTo(map);
+
+      map.on('draw:created', function (e) {
+        var type = e.layerType,
+            layer = e.layer;
+		console.log("layer",layer);
+        layer.on('click', function(event) {
+          this.editMode = true
+          new L.Toolbar2.EditToolbar.Popup(event.latlng, {
+            actions: editActions
+          }).addTo(map, layer);
+        });
+        if(type=='polygon' || type=='rectangle'){
+			layer.addTo(map);
+		}
+        
+      });
+	  
+	 
+    })
+	
+
+	// this.$refs.map.mapObject.addLayer(polygonmap);
+
+	
 		// Disabling a toolbar item
 		// this.$refs.draw.drawOptions.circle = false;
 		// this.$refs.map.mapObject.addControl(this.$refs.draw.draw,circle = false);
@@ -154,25 +261,26 @@ export default {
 		// this.$refs.map.mapObject.addControl(drawControl);
 		// this.$refs.map.mapObject.drawControl._toolbars.edit.options
 
-		new L.Toolbar2.DrawToolbar({
-			position: 'topright',
-			draw: {
-				circle: false, 
-				marker: false,	
-				polyline: false, 
-				}  // <-- this does nothing
-      }).addTo(this.$refs.map.mapObject);
+	// 	drawControl = new L.Toolbar2.DrawToolbar({
+	// 		position: 'topright',
+	// 		draw: {
+	// 			circle: false, 
+	// 			marker: false,	
+	// 			polyline: false, 
+	// 			}  // <-- this does nothing
+    //   });
+	//   	this.$refs.map.mapObject.addControl(drawControl);
 
-		this.$refs.map.mapObject.on("draw:created", (e) => {
-			console.log("draw:created", e);
-			if (e.layerType === 'rectangle' || e.layerType === 'polygon') {
-				console.log("getLatLngs", e.layer.getLatLngs());
-				console.log("getBounds", e.layer.getBounds());
-				e.layer.addTo(this.$refs.map.mapObject);
-   			}
+	// 	this.$refs.map.mapObject.on("draw:created", (e) => {
+	// 		console.log("draw:created", e);
+	// 		if (e.layerType === 'rectangle' || e.layerType === 'polygon') {
+	// 			console.log("getLatLngs", e.layer.getLatLngs());
+	// 			console.log("getBounds", e.layer.getBounds());
+	// 			e.layer.addTo(this.$refs.map.mapObject);
+   	// 		}
 			
-			// this.$refs.map.mapObject.addLayer(e.layer);
-		});
+	// 		// this.$refs.map.mapObject.addLayer(e.layer);
+	// 	});
 
 		
 		// this.$refs.map.mapObject.on("draw:edited", (e) => {
@@ -206,6 +314,8 @@ export default {
 			offices_city: [],
 			type:null,
 			coworking_types:[],
+			polygons: [],
+			position: "topright",
 		};
 	},
 	computed: {
@@ -355,11 +465,33 @@ export default {
 	  clickCasa(e) {
 			console.log("latlng",e.latlng);
 			// this.EditToolbar.editLayer(this.$refs.map, e.latlng);
-			// console.log("map",e.target.layer);
+			console.log("target",e.target);
 			// this.$refs.map.mapObject.eachLayer(function(layer){
 			// 		console.log("layer",layer);
 			// 	});
 			console.log("draw",this.$refs.draw);
+			console.log("poly",this.$refs.poly[0].layer);
+			var polygon = this.$refs.poly;
+			let editActions = [
+				L.Toolbar2.EditAction.Popup.Edit,
+				L.Toolbar2.EditAction.Popup.Delete,
+				L.Toolbar2.Action.extendOptions({
+				toolbarIcon: { 
+					className: 'leaflet-color-picker', 
+					html: '<i class="fas fa-fill-drip"></i>' 
+				},
+				subToolbar: new L.Toolbar2({ actions: [
+					L.ColorPicker.extendOptions({ color: '#db1d0f' }),
+					L.ColorPicker.extendOptions({ color: '#025100' }),
+					L.ColorPicker.extendOptions({ color: '#ffff00' }),
+					L.ColorPicker.extendOptions({ color: '#0000ff' })
+				]})
+				})
+			];
+			this.editMode = true
+			new L.Toolbar2.EditToolbar.Popup(e.latlng, {
+			actions: editActions
+			}).addTo(this.$refs.map.mapObject, e.target);
 			// this.$refs.draw.setDrawingOptions({
 			// position: 'topright',
 			// draw: {
