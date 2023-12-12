@@ -18,6 +18,18 @@ class AreaService {
 	async getAreas() {
 		return httpClient.get("/areas/index.json");
 	}
+	addArea(form_data=null) {
+		if(form_data == null){
+			return httpClient.get(`/areas/add.json`);
+		}else{
+			return httpClient({
+				method: "post",
+				url: `/areas/add.json`,
+				data: form_data,
+	
+			});
+		}
+	}
 
 }
 

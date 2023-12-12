@@ -3,7 +3,7 @@
 	<b-tabs content-class="mt-3">
     <b-tab title="Area provincia " v-if="area.province!=null">
 		<b-row>
-			<b-col md="6" sm="12">
+			<b-col md="5" sm="12">
 				<b-form-group id="input-group-2" label="Nome area:" label-for="input-2">
 					<b-form-input
 					id="input-2"
@@ -13,7 +13,7 @@
 					></b-form-input>
 				</b-form-group>
 			</b-col>
-			<b-col md="6" sm="12">
+			<b-col md="5" sm="12">
 				<b-form-group id="input-group-2" label="User:" label-for="input-2">
 					<b-form-select
 					id="input-2"
@@ -24,13 +24,15 @@
 					></b-form-select>
 				</b-form-group>
 			</b-col>
+			<b-col md="2" sm="12">
+				<b-button variant="primary" @click="onSubmit()" class="mt-4">Salva</b-button>
+			</b-col>
 		</b-row>
-		<b-button variant="primary" @click="onSubmit()">Salva</b-button>
-		<!-- <polygon-edit :province="area.province"></polygon-edit> -->
+		<polygon-edit></polygon-edit>
 	</b-tab>
     <b-tab title="Area citta" v-if="area.city!=null">
 		<b-row>
-			<b-col md="6" sm="12">
+			<b-col md="5" sm="12">
 				<b-form-group id="input-group-2" label="Nome area:" label-for="input-2">
 					<b-form-input
 					id="input-2"
@@ -40,7 +42,7 @@
 					></b-form-input>
 				</b-form-group>
 			</b-col>
-			<b-col md="6" sm="12">
+			<b-col md="5" sm="12">
 				<b-form-group id="input-group-2" label="User:" label-for="input-2">
 					<b-form-select
 					id="input-2"
@@ -51,13 +53,15 @@
 					></b-form-select>
 				</b-form-group>
 			</b-col>
+			<b-col md="2" sm="12">
+				<b-button variant="primary" @click="onSubmit()" class="mt-4">Salva</b-button>
+			</b-col>
 		</b-row>
-		<b-button variant="primary" @click="onSubmit()">Salva</b-button>
-		<polygon-edit :city="area.city"></polygon-edit>
+		<polygon-edit></polygon-edit>
 	</b-tab>
     <b-tab title="Area poligono" v-if="area.polygon!=null">
 		<b-row>
-			<b-col md="6" sm="12">
+			<b-col md="5" sm="12">
 				<b-form-group id="input-group-2" label="Nome area:" label-for="input-2">
 					<b-form-input
 					id="input-2"
@@ -67,7 +71,7 @@
 					></b-form-input>
 				</b-form-group>
 			</b-col>
-			<b-col md="6" sm="12">
+			<b-col md="5" sm="12">
 				<b-form-group id="input-group-2" label="User:" label-for="input-2">
 					<b-form-select
 					id="input-2"
@@ -78,9 +82,11 @@
 					></b-form-select>
 				</b-form-group>
 			</b-col>
+			<b-col md="2" sm="12">
+				<b-button variant="primary" @click="onSubmit()" class="mb-4">Salva</b-button>
+			</b-col>
 		</b-row>
-		<b-button variant="primary" @click="onSubmit()" >Salva</b-button>
-		<!-- <polygon-edit :polygon="null"></polygon-edit> -->
+		<polygon-edit></polygon-edit>
 	</b-tab>
   </b-tabs>  
   <!-- <polygon-edit :polygon="area.polygon"></polygon-edit> -->
