@@ -1,5 +1,15 @@
 <template>
   <div>
+    <b-row md="2" v-if="isAuthorized('admin')" class="pt-4">
+          <b-link
+            to="/momarea/add"
+            class="btn btn-sm float-right btn-success"
+            title="Aggiungi Area">
+            <i class="fa fa-plus" aria-hidden="true"></i>
+            Aggiungi Area
+          </b-link>
+    </b-row>
+    <br>
     <b-table 
       striped
       hover

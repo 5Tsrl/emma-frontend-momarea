@@ -19,7 +19,14 @@ const routes = [
 				meta: { authorize: ["admin"] },
 				// lazy-loaded
 				component: pageComponent("edit"),
-			},					
+			},			
+			{
+				path: "/momarea/add",
+				name: "Aggiungi Spazi di Moma Area",
+				meta: { authorize: ["admin"] },
+				// lazy-loaded
+				component: pageComponent("add"),
+			},				
 		]
 	}
 ];
