@@ -12,7 +12,7 @@
 						@input="updateProvince($event)"></b-form-select>
 					</b-form-group>
 				</b-col>
-				<b-col md="4" v-if="isAuthorized('admin, moma')">
+				<b-col md="4" v-if="isAuthorized('admin, moma')" >
 					<b-form-group label="Città:">
 					<b-form-select
 						v-model="city"
@@ -99,6 +99,11 @@ export default {
 		LDrawToolbar,		
 		LPolygon,
 	},
+	props: {
+		city: String,
+		// province: String,
+		// polygon: String,
+	},
 	data() {
 		return {
 			zoom: 8,
@@ -118,12 +123,13 @@ export default {
 			loading: false,
 			companyIcon: companyIcon,
 			wmsRenderKey: Date.now(),
-			city:null,
+			// city:null,
 			offices_city: [],
 			polygons: [],
 			position: "topright",
 			province:null,
 			offices_province: [],
+			polygon:null,
 		};
 	},
 	computed: {
@@ -135,7 +141,7 @@ export default {
 		this.offices_layer = this.generateLayer();
 		this.offices_city = Array.from(new Set(this.offices_layer.reduce((acc, item) => {
 		  if (!(item.city == null || item.city == '')) {
-			acc.push(item.city.trim().toLowerCase());
+			acc.push(item.city.trim().toUpperCase());
 		  }
 		  return acc;
 		}, []))).filter(value => value !== null);
@@ -148,7 +154,7 @@ export default {
 					id: null,
 					name: "Tutte",
 				});
-		this.city =this.offices_city[0].id;
+		// this.city =this.offices_city[0].id;
 		// repalce office_city for office_province
 		this.offices_province = Array.from(new Set(this.offices_layer.reduce((acc, item) => {
 		  if (!(item.province == null || item.province == '')) {
@@ -168,26 +174,46 @@ export default {
 		this.province = this.offices_province[0].id;
 		this.loading = false;
 		this.fitMarkers();		
-		let polygon = await AreaService.editArea(1,null);
-	console.log("polygon",polygon);
-	let polygonarea = polygon.data.area.polygon;
-	this.area=polygon.data.area;
+// 		let polygon = await AreaService.editArea(1,null);
+// 	console.log("polygon",polygon);
+// 	let polygonarea = polygon.data.area.polygon;
+// 	this.area=polygon.data.area;
 	
-	// become this string polygon=POLYGON((45.08 7.69,45.08 7.7,45.1 7.7,45.1 7.69,45.08 7.69)) to this.polygon: {
-//     latlngs: [[45.08 , 7.69], [45.08 , 7.7], [45.1 7.7], [45.1 7.69], [45.08 7.69]]
-//   },
-	this.polygon = {
-	latlngs: polygonarea.replace("POLYGON((","").replace("))","").split(",").map(function (item) {
-		return item.split(" ").map(function (item) {
-			return parseFloat(item);
-		});
-	})
-	};
-	this.polygons.push(this.polygon);
+// 	// become this string polygon=POLYGON((45.08 7.69,45.08 7.7,45.1 7.7,45.1 7.69,45.08 7.69)) to this.polygon: {
+// //     latlngs: [[45.08 , 7.69], [45.08 , 7.7], [45.1 7.7], [45.1 7.69], [45.08 7.69]]
+// //   },
+// 	this.polygon = {
+// 	latlngs: polygonarea.replace("POLYGON((","").replace("))","").split(",").map(function (item) {
+// 		return item.split(" ").map(function (item) {
+// 			return parseFloat(item);
+// 		});
+// 	})
+// 	};
+// 	this.polygons.push(this.polygon);
+// 	console.log("this.polygon",this.polygons);
+	if(this.polygon !== null){
+		let polygon = {
+		latlngs: this.polygon.replace("POLYGON((","").replace("))","").split(",").map(function (item) {
+			return item.split(" ").map(function (item) {
+				return parseFloat(item);
+			});
+		})
+		};
+		this.polygons.push(polygon);
+	}
+
+	// let polygon = {
+	// latlngs: this.polygon.replace("POLYGON((","").replace("))","").split(",").map(function (item) {
+	// 	return item.split(" ").map(function (item) {
+	// 		return parseFloat(item);
+	// 	});
+	// })
+	// };
+	// this.polygons.push(polygon);
 
 		
-	// this.polygon = polygon.data.area.polygon.replace("POLYGON((","").replace("))","").split(",");
-	console.log("this.polygon",this.polygons);
+	// // this.polygon = polygon.data.area.polygon.replace("POLYGON((","").replace("))","").split(",");
+	// console.log("this.polygon",this.polygons);
 	// 	// add  L.Draw.Polygon to map using array of long lat
 	// var polygonmap = new L.Polygon(this.polygons[0].latlngs);
 
@@ -284,16 +310,20 @@ export default {
 				
 			// to this string polygon='POLYGON((45.08 7.69,45.08 7.7,45.1 7.7,45.1 7.69,45.08 7.69))'
 			// limit item to 2 decimal and repeat the frist item at the end
-			var polygon = "POLYGON(("+e.layers._layers[Object.keys(e.layers._layers)[0]]._latlngs[0].map(function (item) {
+			// var polygon = "POLYGON(("+e.layers._layers[Object.keys(e.layers._layers)[0]]._latlngs[0].map(function (item) {
+			// 	console.log("item",item);
+			// 	return item.lat.toFixed(2) + " " + item.lng.toFixed(2);
+			// }).join(",") + "," + e.layers._layers[Object.keys(e.layers._layers)[0]]._latlngs[0][0].lat.toFixed(2) + " " + e.layers._layers[Object.keys(e.layers._layers)[0]]._latlngs[0][0].lng.toFixed(2) + "))";
+			// console.log("polygon",polygon);
+
+			// // var polygon = e.layers._layers[Object.keys(e.layers._layers)[0]].toGeoJSON().geometry;
+			// let res = this.editArea(1, polygon);
+			// // await UserService.editArea(id, polygon);
+			// console.log("res", res);
+			this.polygon = "POLYGON(("+e.layers._layers[Object.keys(e.layers._layers)[0]]._latlngs[0].map(function (item) {
 				console.log("item",item);
 				return item.lat.toFixed(2) + " " + item.lng.toFixed(2);
 			}).join(",") + "," + e.layers._layers[Object.keys(e.layers._layers)[0]]._latlngs[0][0].lat.toFixed(2) + " " + e.layers._layers[Object.keys(e.layers._layers)[0]]._latlngs[0][0].lng.toFixed(2) + "))";
-			console.log("polygon",polygon);
-
-			// var polygon = e.layers._layers[Object.keys(e.layers._layers)[0]].toGeoJSON().geometry;
-			let res = this.editArea(1, polygon);
-			// await UserService.editArea(id, polygon);
-			console.log("res", res);
 		});
 		this.$refs.map.mapObject.on("draw:deleted", (e) => {
 			console.log("draw:deleted", e);
@@ -366,8 +396,8 @@ export default {
 				if (x.company !== undefined && x.company !== null && x.lat != null) {
 						if(city !== null){
 							if(x.city!== null){
-								if((x.city.trim().toLowerCase() == city)){
-									return (x.city.trim().toLowerCase() == city);
+								if((x.city.trim().toUpperCase() == city)){
+									return (x.city.trim().toUpperCase() == city);
 								}
 							
 							}
@@ -389,6 +419,7 @@ export default {
 	  updateCity(){
 		this.offices_layer = this.generateLayer(this.city,null);
 		console.log(this.offices_layer)
+		console.log("city",this.city)
 	  },
 	  updateProvince(){
 		this.offices_layer = this.generateLayer(null,this.province);

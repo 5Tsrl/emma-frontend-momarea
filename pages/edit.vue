@@ -1,4 +1,5 @@
 <template>
+	<div>
 	<b-tabs content-class="mt-3">
     <b-tab title="Area provincia " v-if="area.province!=null">
 		<b-row>
@@ -25,7 +26,7 @@
 			</b-col>
 		</b-row>
 		<b-button variant="primary" @click="onSubmit()">Salva</b-button>
-		<polygon-edit></polygon-edit>
+		<!-- <polygon-edit :province="area.province"></polygon-edit> -->
 	</b-tab>
     <b-tab title="Area citta" v-if="area.city!=null">
 		<b-row>
@@ -52,7 +53,7 @@
 			</b-col>
 		</b-row>
 		<b-button variant="primary" @click="onSubmit()">Salva</b-button>
-		<polygon-edit></polygon-edit>
+		<polygon-edit :city="area.city"></polygon-edit>
 	</b-tab>
     <b-tab title="Area poligono" v-if="area.polygon!=null">
 		<b-row>
@@ -79,9 +80,11 @@
 			</b-col>
 		</b-row>
 		<b-button variant="primary" @click="onSubmit()" >Salva</b-button>
-		<polygon-edit></polygon-edit>
+		<!-- <polygon-edit :polygon="null"></polygon-edit> -->
 	</b-tab>
-  </b-tabs>
+  </b-tabs>  
+  <!-- <polygon-edit :polygon="area.polygon"></polygon-edit> -->
+</div>
 </template>
 
 <script>
@@ -115,10 +118,10 @@ export default {
 		this.loading=true;
 		console.log("params",this.$route.params)
 		this.id = parseInt(this.$route.params.id);
-		var data = (await AreaService.editArea(this.id,null)).data;
-		this.area=data.area;
-		this.users=data.users;
-		console.log("data",data);
+		let res = (await AreaService.editArea(this.id,null)).data;
+		this.area=res.area;
+		this.users=res.users;
+		console.log("data",res);
 		this.loading=false;
 	},
 	methods: {
