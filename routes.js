@@ -7,12 +7,19 @@ const routes = [
 		redirect: "/dashboard",
 		children: [
 			{
-				path: "/momaera",
+				path: "/momarea",
 				name: "Spazi di Moma Area",
-				meta: { authorize: ["admin", "moma","moma_area", "user"]  },
+				meta: { authorize: ["admin", "moma","moma_area"]  },
 				// lazy-loaded
 				component: pageComponent("index"),
-			},						
+			},	
+			{
+				path: "/momarea/edit/:id",
+				name: "Edit Spazi di Moma Area",
+				meta: { authorize: ["admin"] },
+				// lazy-loaded
+				component: pageComponent("edit"),
+			},					
 		]
 	}
 ];
