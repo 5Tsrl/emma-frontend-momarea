@@ -17,10 +17,11 @@
 				<b-form-group id="input-group-2" label="User:" label-for="input-2">
 					<b-form-select
 					id="input-2"
-					v-model="area.users[0].id"
+					v-model="area.users"
 					:options="users"
 					placeholder=""
 					required
+					multiple
 					></b-form-select>
 				</b-form-group>
 			</b-col>
@@ -28,7 +29,7 @@
 				<b-button variant="primary" @click="onSubmit()" class="mt-4">Salva</b-button>
 			</b-col>
 		</b-row>
-		<polygon-edit></polygon-edit>
+		<polygon-edit :area="area" key="province"></polygon-edit>
 	</b-tab>
     <b-tab title="Area citta" v-if="area.city!=null">
 		<b-row>
@@ -44,12 +45,14 @@
 			</b-col>
 			<b-col md="5" sm="12">
 				<b-form-group id="input-group-2" label="User:" label-for="input-2">
+					<!-- vue select v-model is and array of objects I would like to obtain its id -->
 					<b-form-select
 					id="input-2"
-					v-model="area.users[0].id"
+					v-model="selectedUsers"
 					:options="users"
 					placeholder=""
 					required
+					multiple
 					></b-form-select>
 				</b-form-group>
 			</b-col>
@@ -57,7 +60,7 @@
 				<b-button variant="primary" @click="onSubmit()" class="mt-4">Salva</b-button>
 			</b-col>
 		</b-row>
-		<polygon-edit></polygon-edit>
+		<polygon-edit :area="area" key="city"></polygon-edit>
 	</b-tab>
     <b-tab title="Area poligono" v-if="area.polygon!=null">
 		<b-row>
@@ -75,10 +78,11 @@
 				<b-form-group id="input-group-2" label="User:" label-for="input-2">
 					<b-form-select
 					id="input-2"
-					v-model="area.users[0].id"
+					v-model="area.users"
 					:options="users"
 					placeholder=""
 					required
+					multiple
 					></b-form-select>
 				</b-form-group>
 			</b-col>
@@ -86,7 +90,7 @@
 				<b-button variant="primary" @click="onSubmit()" class="mb-4">Salva</b-button>
 			</b-col>
 		</b-row>
-		<polygon-edit></polygon-edit>
+		<polygon-edit :area="area" key="polygon"></polygon-edit>
 	</b-tab>
   </b-tabs>  
   <!-- <polygon-edit :polygon="area.polygon"></polygon-edit> -->
@@ -113,6 +117,7 @@ export default {
 				provincia: null,
 				city: null,
 				polygon: null,
+				users: null,
 
 			},
 			users: null,
@@ -126,9 +131,30 @@ export default {
 		this.id = parseInt(this.$route.params.id);
 		let res = (await AreaService.editArea(this.id,null)).data;
 		this.area=res.area;
+		console.log("area",this.area);
 		this.users=res.users;
 		console.log("data",res);
 		this.loading=false;
+	},
+	computed: {
+		selectedUsers: {
+			get() {
+				// if this.area.users is array 
+				console.log("area",this.area);
+				if (Array.isArray(this.area.users)) {
+					return this.area.users.map(user => user.id);
+				}else{
+					return this.area.users._ids;
+				}
+				
+				
+			},
+			set(value) {
+				console.log("value",value);
+				this.area.users = {_ids:value};
+				console.log("area",this.area);
+			}
+		}
 	},
 	methods: {
 		async onSubmit() {

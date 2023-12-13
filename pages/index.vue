@@ -28,6 +28,12 @@
       </template>
       <template #cell(users)="row">
         {{ row.item.users[0].email }}
+        <b-link :title="row.item.users.slice(1).map(user => user.email)" v-if="row.item.users.length>=2">
+          <span>{{ "[+"+(row.item.users.length-1)+"]" }}</span>
+        </b-link>
+        <!-- <b-tooltip :title="row.item.users.join(', ')">
+          <span>{{ row.item.users[0].email }}</span>
+        </b-tooltip> -->
       </template>
       <template #cell(actions)="row">
         <b-link
@@ -58,7 +64,7 @@ export default {
         { key: "city", label: "City" },
         { key: "province", label: "Province" },
         { key: "polygon", label: "Polygon" },
-        { key: "users", label: "User" },
+        { key: "users", label: "Users" },
         { key: "actions", label: "Actions" }
       ]
     };

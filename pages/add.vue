@@ -27,7 +27,7 @@
 				<b-button variant="primary" @click="onSubmit()" class="mt-4">Salva</b-button>
 			</b-col>
 		</b-row>
-		<polygon-edit></polygon-edit>
+		<polygon-edit :area="area" key="province"></polygon-edit>
 	</b-tab>
     <b-tab title="Area citta">
 		<b-row>
@@ -56,7 +56,7 @@
 				<b-button variant="primary" @click="onSubmit()" class="mt-4">Salva</b-button>
 			</b-col>
 		</b-row>
-		<polygon-edit></polygon-edit>
+		<polygon-edit :area="area" key="city"></polygon-edit>
 	</b-tab>
     <b-tab title="Area poligono">
 		<b-row>
@@ -85,7 +85,7 @@
 				<b-button variant="primary" @click="onSubmit()" class="mt-4">Salva</b-button>
 			</b-col>
 		</b-row>
-		<polygon-edit></polygon-edit>
+		<polygon-edit :area="area" key="polygon"></polygon-edit>
 	</b-tab>
   </b-tabs>
 </template>
@@ -108,7 +108,7 @@ export default {
 		return{
 			area: {
 				name: null,
-				provincia: null,
+				province: null,
 				city: null,
 				polygon: null,
 				users:[{id: null}],

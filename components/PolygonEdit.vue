@@ -2,20 +2,20 @@
     <div>
 		<b-form>
 			<b-form-row>
-				<b-col md="4" v-if="isAuthorized('admin, moma')">
+				<b-col md="4" v-if="isAuthorized('admin, moma') && area.province!==null">
 					<b-form-group label="Provincia:">
 					<b-form-select
-						v-model="province"
+						v-model="area.province"
 						:options="offices_province"
 						value-field="id"
 						text-field="name"
 						@input="updateProvince($event)"></b-form-select>
 					</b-form-group>
 				</b-col>
-				<b-col md="4" v-if="isAuthorized('admin, moma')" >
+				<b-col md="4" v-if="isAuthorized('admin, moma') && area.city!==null" >
 					<b-form-group label="Città:">
 					<b-form-select
-						v-model="city"
+						v-model="area.city"
 						:options="offices_city"
 						value-field="id"
 						text-field="name"
@@ -39,9 +39,18 @@
 					<b-spinner id="spinner" variant="success" label="Spinning"></b-spinner>
 				</div>
 		
-				<l-map id="my-map"  :zoom="zoom" :center="center" :options="getMapOptions"
-					@update:center="centerUpdate" @update:zoom="zoomUpdate" ref="map" @draw:edit="drawEdit">
-					<l-tile-layer :url="getTilesUrl" :attribution="getMapAttribution" :options="getLayerOptions" />
+				<l-map 
+				id="my-map"  
+				:zoom="zoom" 
+				:center="center" 
+				:options="getMapOptions"
+				@update:center="centerUpdate" 
+				@update:zoom="zoomUpdate" 
+				ref="map">
+					<l-tile-layer 
+					:url="getTilesUrl" 
+					:attribution="getMapAttribution" 
+					:options="getLayerOptions" />
 
 					<span v-if="offices_layer.length > 0">
 						<l-marker v-for="office in offices_layer" :key="office.id" :lat-lng="[office.lat, office.lon]"
@@ -51,19 +60,11 @@
 							</l-popup>
 						</l-marker>
 					</span>	
-					<l-feature-group ref="layers">
-						<span v-if="polygons.length > 0">
+					<span v-if="polygons.length > 0">
 						<l-polygon v-for="polygon in polygons" :key="polygon.id" :lat-lngs="polygon.latlngs" :options="{ color: 'red' }" @click="clickCasa" ref="poly">
 							</l-polygon>
 					</span>		
 
-					</l-feature-group>		
-					
-
-					<l-wms-tile-layer :key="wmsRenderKey"
-						base-url="http://geomap.reteunitaria.piemonte.it/ws/siccms/coto-01/wmsg01/wms_sicc124_mobilita"
-						:visible="true" :transparent="true" format="image/png">
-					</l-wms-tile-layer>
 					<!-- <l-draw-toolbar position="topright" ref="draw"/> -->
 				</l-map>
 		</div>		
@@ -72,7 +73,7 @@
 
 <script>
 import Util from "@/mixing/util";
-import L, { polygon } from "leaflet";
+import L from "leaflet";
 import { latLng } from "leaflet";
 import { LMap, LTileLayer, LMarker, LCircleMarker, LWMSTileLayer, LPopup, LPolygon } from "vue2-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -100,17 +101,14 @@ export default {
 		LPolygon,
 	},
 	props: {
-		city: String,
-		// province: String,
-		// polygon: String,
+		area: Object,
 	},
 	data() {
 		return {
-			zoom: 8,
-			center: latLng(45.070339, 7.686864),
-			currentZoom: 8,
-			currentCenter: latLng(45.070339, 7.686864),
-			showMap: true,
+			zoom: 15,
+			center: latLng(45.4654219, 9.1859243),
+			currentZoom: 11.5,
+			currentCenter: latLng(45.4654219, 9.1859243),
 			uffici_azienda: [],
 			office_id: [],
 			offices_layer: [],
@@ -127,9 +125,9 @@ export default {
 			offices_city: [],
 			polygons: [],
 			position: "topright",
-			province:null,
+			// province:null,
 			offices_province: [],
-			polygon:null,
+			// polygon:null,
 		};
 	},
 	computed: {
@@ -171,9 +169,25 @@ export default {
 					id: null,
 					name: "Tutte",
 				});
-		this.province = this.offices_province[0].id;
-		this.loading = false;
-		this.fitMarkers();		
+		// this.province = this.offices_province[0].id;
+		
+		this.offices_layer = this.generateLayer(this.area.city,this.area.province);
+		if(this.area.polygon !== null){
+			let polygon = {
+			latlngs: this.area.polygon.replace("POLYGON((","").replace("))","").split(",").map(function (item) {
+				return item.split(" ").map(function (item) {
+					return parseFloat(item);
+				});
+			})
+			};
+			this.polygons.push(polygon);
+		}
+
+		this.loading = false;	
+		this.fitMarkers();	
+		
+	 
+		
 // 		let polygon = await AreaService.editArea(1,null);
 // 	console.log("polygon",polygon);
 // 	let polygonarea = polygon.data.area.polygon;
@@ -191,16 +205,8 @@ export default {
 // 	};
 // 	this.polygons.push(this.polygon);
 // 	console.log("this.polygon",this.polygons);
-	if(this.polygon !== null){
-		let polygon = {
-		latlngs: this.polygon.replace("POLYGON((","").replace("))","").split(",").map(function (item) {
-			return item.split(" ").map(function (item) {
-				return parseFloat(item);
-			});
-		})
-		};
-		this.polygons.push(polygon);
-	}
+	
+	
 
 	// let polygon = {
 	// latlngs: this.polygon.replace("POLYGON((","").replace("))","").split(",").map(function (item) {
@@ -284,6 +290,11 @@ export default {
         });
         if(type=='polygon'){
 			layer.addTo(map);
+			console.log("layer",layer);
+			this.area.polygon = "POLYGON(("+e.layers._layers[Object.keys(e.layers._layers)[0]]._latlngs[0].map(function (item) {
+				console.log("item",item);
+				return item.lat.toFixed(2) + " " + item.lng.toFixed(2);
+			}).join(",") + "," + e.layers._layers[Object.keys(e.layers._layers)[0]]._latlngs[0][0].lat.toFixed(2) + " " + e.layers._layers[Object.keys(e.layers._layers)[0]]._latlngs[0][0].lng.toFixed(2) + "))";
 		}
         
       });
@@ -320,16 +331,16 @@ export default {
 			// let res = this.editArea(1, polygon);
 			// // await UserService.editArea(id, polygon);
 			// console.log("res", res);
-			this.polygon = "POLYGON(("+e.layers._layers[Object.keys(e.layers._layers)[0]]._latlngs[0].map(function (item) {
+			this.area.polygon = "POLYGON(("+e.layers._layers[Object.keys(e.layers._layers)[0]]._latlngs[0].map(function (item) {
 				console.log("item",item);
 				return item.lat.toFixed(2) + " " + item.lng.toFixed(2);
 			}).join(",") + "," + e.layers._layers[Object.keys(e.layers._layers)[0]]._latlngs[0][0].lat.toFixed(2) + " " + e.layers._layers[Object.keys(e.layers._layers)[0]]._latlngs[0][0].lng.toFixed(2) + "))";
 		});
 		this.$refs.map.mapObject.on("draw:deleted", (e) => {
 			console.log("draw:deleted", e);
+			this.area.polygon = "";
 		});
-	  
-	 
+		
     })
 	
 
@@ -417,12 +428,12 @@ export default {
 			});
 		},
 	  updateCity(){
-		this.offices_layer = this.generateLayer(this.city,null);
+		this.offices_layer = this.generateLayer(this.area.city,null);
 		console.log(this.offices_layer)
-		console.log("city",this.city)
+		console.log("city",this.area.city)
 	  },
 	  updateProvince(){
-		this.offices_layer = this.generateLayer(null,this.province);
+		this.offices_layer = this.generateLayer(null,this.area.province);
 		console.log(this.offices_layer)
 	  },
 	  clickCasa(e) {
@@ -489,16 +500,13 @@ export default {
 			console.log(error);
 		}
 		},
-		drawEdit(e) {
-			console.log("drawEdit", e);
-		}
 	},
 	
 	
 };
 </script>
 
-<style scoped>
+<style >
 @import "~leaflet.markercluster/dist/MarkerCluster.css";
 @import "~leaflet.markercluster/dist/MarkerCluster.Default.css";
 @import "~vue-select/dist/vue-select.css";
@@ -529,5 +537,20 @@ export default {
 #spinner {
 	position: relative;
 	top: 50%;
+}
+
+.leaflet-touch .leaflet-draw-toolbar .leaflet-draw-draw-marker {
+	display: none;
+}
+
+.leaflet-touch .leaflet-draw-toolbar .leaflet-draw-draw-rectangle {
+	display: none;
+}
+
+.leaflet-touch .leaflet-draw-toolbar .leaflet-draw-draw-circle {
+	display: none;
+}
+.leaflet-touch .leaflet-draw-toolbar .leaflet-draw-draw-polyline {
+	display: none;
 }
 </style>
