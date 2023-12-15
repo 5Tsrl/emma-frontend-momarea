@@ -40,6 +40,12 @@ class AreaService {
 			});
 		}
 	}
+	async deleteArea(id) {
+		return httpClient({
+			method: "post",
+			url: `/areas/delete/${id}.json`,
+		});
+	}
 
 }
 

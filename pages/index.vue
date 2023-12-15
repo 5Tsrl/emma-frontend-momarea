@@ -74,8 +74,9 @@ export default {
     console.log(this.areas);
   },
   methods: {
-    deleteArea(id) {
-      // Handle delete logic here
+    async deleteArea(id) {
+      await AreaService.deleteArea(id);
+      this.areas = this.areas.filter(area => area.id != id);
     }
   }
 };
