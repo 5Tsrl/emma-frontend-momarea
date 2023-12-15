@@ -1,96 +1,47 @@
 <template>
-    <b-tabs content-class="mt-3">
-    <b-tab title="Area provincia ">
-		<b-row>
-			<b-col md="5" sm="12">
-				<b-form-group id="input-group-2" label="Nome area:" label-for="input-2">
-					<b-form-input
-					id="input-2"
-					v-model="area.name"
-					placeholder="Inserisci nome area"
-					required
-					></b-form-input>
-				</b-form-group>
-			</b-col>
-			<b-col md="5" sm="12">
-				<b-form-group id="input-group-2" label="User:" label-for="input-2">
-					<b-form-select
-					id="input-2"
-					v-model="selectedUsers"
-					:options="users"
-					placeholder=""
-					required
-					multiple
-					></b-form-select>
-				</b-form-group>
-			</b-col>
-			<b-col md="2" sm="12">
-				<b-button variant="primary" @click="onSubmit()" class="mt-4">Salva</b-button>
-			</b-col>
-		</b-row>
-		<!-- <polygon-edit :area="area" key="province"></polygon-edit> -->
-	</b-tab>
-    <b-tab title="Area citta">
-		<b-row>
-			<b-col md="5" sm="12">
-				<b-form-group id="input-group-2" label="Nome area:" label-for="input-2">
-					<b-form-input
-					id="input-2"
-					v-model="area.name"
-					placeholder="Inserisci nome area"
-					required
-					></b-form-input>
-				</b-form-group>
-			</b-col>
-			<b-col md="5" sm="12">
-				<b-form-group id="input-group-2" label="User:" label-for="input-2">
-					<b-form-select
-					id="input-2"
-					v-model="selectedUsers"
-					:options="users"
-					placeholder=""
-					required
-					multiple
-					></b-form-select>
-				</b-form-group>
-			</b-col>
-			<b-col md="2" sm="12">
-				<b-button variant="primary" @click="onSubmit()" class="mt-4">Salva</b-button>
-			</b-col>
-		</b-row>
-		<!-- <polygon-edit :area="area" key="city"></polygon-edit> -->
-	</b-tab>
-    <b-tab title="Area poligono" active>
-		<b-row>
-			<b-col md="5" sm="12">
-				<b-form-group id="input-group-2" label="Nome area:" label-for="input-2">
-					<b-form-input
-					id="input-2"
-					v-model="area.name"
-					placeholder="Inserisci nome area"
-					required
-					></b-form-input>
-				</b-form-group>
-			</b-col>
-			<b-col md="5" sm="12">
-				<b-form-group id="input-group-2" label="User:" label-for="input-2">
-					<b-form-select
-					id="input-2"
-					v-model="selectedUsers"
-					:options="users"
-					placeholder=""
-					required
-					multiple
-					></b-form-select>
-				</b-form-group>
-			</b-col>
-			<b-col md="2" sm="12">
-				<b-button variant="primary" @click="onSubmit()" class="mt-4">Salva</b-button>
-			</b-col>
-		</b-row>
-		<polygon-edit :area="area" key="polygon"></polygon-edit>
-	</b-tab>
-  </b-tabs>
+    <div>
+		<b-form-group id="input-group-2" label="Nome area:" label-for="input-2">
+			<b-form-input
+			id="input-2"
+			v-model="area.name"
+			placeholder="Inserisci nome area"
+			required
+			></b-form-input>
+		</b-form-group>
+
+		<b-form-group id="input-group-2" label="User:" label-for="input-2">
+			<b-form-select
+			id="input-2"
+			v-model="selectedUsers"
+			:options="users"
+			placeholder=""
+			required
+			multiple
+			></b-form-select>
+		</b-form-group>
+		<h5>Seleziona l´area</h5>
+		<b-form-group>
+			<b-row>
+				<b-col md="4">
+					<b-form-radio v-model="selectedArea" name="selectedarea" value="province">
+						Provincia
+					</b-form-radio>
+				</b-col>
+				<b-col md="4">
+					<b-form-radio v-model="selectedArea" name="selectedarea" value="city">
+						Città
+					</b-form-radio>
+				</b-col>
+				<b-col md="4">
+					<b-form-radio v-model="selectedArea" name="selectedarea" value="polygon">
+						Poligon
+					</b-form-radio>
+				</b-col>
+			</b-row>
+		</b-form-group>
+		<b-button variant="primary" @click="onSubmit()" class="mb-3">Salva</b-button>
+		<polygon-edit :area="area" :selectedArea="selectedArea" ></polygon-edit>
+	</div>
 </template>
 
 <script>
@@ -120,6 +71,7 @@ export default {
 			},
 			users: null,
 			loading: false,
+			selectedArea: null,
 		};
 	},
 	async created(){
