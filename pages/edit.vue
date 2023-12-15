@@ -1,99 +1,46 @@
 <template>
 	<div>
-	<b-tabs content-class="mt-3">
-    <b-tab title="Area provincia " v-if="area.province!=null">
-		<b-row>
-			<b-col md="5" sm="12">
-				<b-form-group id="input-group-2" label="Nome area:" label-for="input-2">
-					<b-form-input
-					id="input-2"
-					v-model="area.name"
-					placeholder="Inserisci nome area"
-					required
-					></b-form-input>
-				</b-form-group>
-			</b-col>
-			<b-col md="5" sm="12">
-				<b-form-group id="input-group-2" label="User:" label-for="input-2">
-					<b-form-select
-					id="input-2"
-					v-model="area.users"
-					:options="users"
-					placeholder=""
-					required
-					multiple
-					></b-form-select>
-				</b-form-group>
-			</b-col>
-			<b-col md="2" sm="12">
-				<b-button variant="primary" @click="onSubmit()" class="mt-4">Salva</b-button>
-			</b-col>
-		</b-row>
-		<polygon-edit :area="area" key="province"></polygon-edit>
-	</b-tab>
-    <b-tab title="Area citta" v-if="area.city!=null">
-		<b-row>
-			<b-col md="5" sm="12">
-				<b-form-group id="input-group-2" label="Nome area:" label-for="input-2">
-					<b-form-input
-					id="input-2"
-					v-model="area.name"
-					placeholder="Inserisci nome area"
-					required
-					></b-form-input>
-				</b-form-group>
-			</b-col>
-			<b-col md="5" sm="12">
-				<b-form-group id="input-group-2" label="User:" label-for="input-2">
-					<!-- vue select v-model is and array of objects I would like to obtain its id -->
-					<b-form-select
-					id="input-2"
-					v-model="selectedUsers"
-					:options="users"
-					placeholder=""
-					required
-					multiple
-					></b-form-select>
-				</b-form-group>
-			</b-col>
-			<b-col md="2" sm="12">
-				<b-button variant="primary" @click="onSubmit()" class="mt-4">Salva</b-button>
-			</b-col>
-		</b-row>
-		<polygon-edit :area="area" key="city"></polygon-edit>
-	</b-tab>
-    <b-tab title="Area poligono"  active>
-		<b-row>
-			<b-col md="5" sm="12">
-				<b-form-group id="input-group-2" label="Nome area:" label-for="input-2">
-					<b-form-input
-					id="input-2"
-					v-model="area.name"
-					placeholder="Inserisci nome area"
-					required
-					></b-form-input>
-				</b-form-group>
-			</b-col>
-			<b-col md="5" sm="12">
-				<b-form-group id="input-group-2" label="User:" label-for="input-2">
-					<b-form-select
-					id="input-2"
-					v-model="selectedUsers"
-					:options="users"
-					placeholder=""
-					required
-					multiple
-					></b-form-select>
-				</b-form-group>
-			</b-col>
-			<b-col md="2" sm="12">
-				<b-button variant="primary" @click="onSubmit()" class="mb-4">Salva</b-button>
-			</b-col>
-		</b-row>
-		<polygon-edit :area="area" key="polygon"></polygon-edit>
-	</b-tab>
-  </b-tabs>  
-  <!-- <polygon-edit :polygon="area.polygon"></polygon-edit> -->
+		<b-form-group id="input-group-2" label="Nome area:" label-for="input-2">
+			<b-form-input
+			id="input-2"
+			v-model="area.name"
+			placeholder="Inserisci nome area"
+			required
+			></b-form-input>
+		</b-form-group>
+
+		<b-form-group id="input-group-2" label="User:" label-for="input-2">
+			<b-form-select
+			id="input-2"
+			v-model="area.users"
+			:options="users"
+			placeholder=""
+			required
+			multiple
+			></b-form-select>
+		</b-form-group>
+		<b-button variant="primary" @click="onSubmit()" class="mb-3">Salva</b-button>
+		<h5>Seleziona l´area</h5>
+            <b-form-group>
+				<b-row>
+					<b-col md="4">
+						<b-form-radio v-model="selectedArea" name="selectedarea" value="province">
+							Provincia
+						</b-form-radio>
+					</b-col>
+					<b-col md="4">
+						<b-form-radio v-model="selectedArea" name="selectedarea" value="city">
+							Città
+						</b-form-radio>
+					</b-col>
+					<b-col md="4">
+						<b-form-radio v-model="selectedArea" name="selectedarea" value="polygon">
+							Poligon
+						</b-form-radio>
+					</b-col>
+				</b-row>
+            </b-form-group>
+			<polygon-edit :area="area" :selectedArea="selectedArea" ></polygon-edit>
 </div>
 </template>
 
@@ -132,6 +79,9 @@ export default {
 		let res = (await AreaService.editArea(this.id,null)).data;
 		this.area=res.area;
 		console.log("area",this.area);
+		if(this.area.polygon !== null){
+			this.selectedArea="polygon";
+		}
 		this.users=res.users;
 		console.log("data",res);
 		this.loading=false;
