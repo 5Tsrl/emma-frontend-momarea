@@ -1,14 +1,42 @@
 <template>
   <div>
-    <b-row md="2" v-if="isAuthorized('admin')" class="pt-4">
-          <b-link
-            to="/momarea/add"
-            class="btn btn-sm float-right btn-success"
-            title="Aggiungi Area">
-            <i class="fa fa-plus" aria-hidden="true"></i>
-            Aggiungi Area
-          </b-link>
-    </b-row>
+    <b-form @onsubmit.prevent>
+      <b-form-row>
+        <b-col md="3">
+          <b-form-group label="Nome Area">
+            <b-form-input
+              v-model="filter.name_area"
+			  type="search"
+              placeholder="Scrivi alcune lettere"></b-form-input>
+          </b-form-group>
+        </b-col>
+
+        <b-col md="3">
+          <b-form-group label="User Area">
+            <b-form-input
+              v-model="filter.user_area"
+			  type="search"
+              placeholder="Scrivi alcune lettere"></b-form-input>
+          </b-form-group>
+        </b-col>
+        
+        <b-col md="1">
+          <b-form-group class="pt-4">
+            <b-button @click.prevent="filterarea()">Filtra</b-button>
+          </b-form-group>
+        </b-col>
+
+        <b-col md="5" v-if="isAuthorized('admin')" class="pt-4">
+              <b-link
+                to="/momarea/add"
+                class="btn btn-sm float-right btn-success"
+                title="Aggiungi Area">
+                <i class="fa fa-plus" aria-hidden="true"></i>
+                Aggiungi Area
+              </b-link>
+        </b-col>
+      </b-form-row>
+    </b-form>
     <br>
     <b-table 
       striped
@@ -66,7 +94,11 @@ export default {
         { key: "polygon", label: "Polygon" },
         { key: "users", label: "Users" },
         { key: "actions", label: "Actions" }
-      ]
+      ],
+      filter: {
+				name_area: null, 
+        user_area: null,
+			},
     };
   },
   async created() {
@@ -76,8 +108,12 @@ export default {
   methods: {
     deleteArea(id) {
       // Handle delete logic here
+    },
+    async filterarea () {
+      this.areas = (await AreaService.indexAreas(this.filterarea.name_area, this.filterarea.user_area)).data.areas;
+    console.log(this.areas);
     }
-  }
+  },
 };
 </script>
 
