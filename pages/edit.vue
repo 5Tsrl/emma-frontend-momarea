@@ -62,7 +62,7 @@
 		</b-row>
 		<polygon-edit :area="area" key="city"></polygon-edit>
 	</b-tab>
-    <b-tab title="Area poligono" v-if="area.polygon!=null">
+    <b-tab title="Area poligono"  active>
 		<b-row>
 			<b-col md="5" sm="12">
 				<b-form-group id="input-group-2" label="Nome area:" label-for="input-2">
@@ -78,7 +78,7 @@
 				<b-form-group id="input-group-2" label="User:" label-for="input-2">
 					<b-form-select
 					id="input-2"
-					v-model="area.users"
+					v-model="selectedUsers"
 					:options="users"
 					placeholder=""
 					required
@@ -160,6 +160,8 @@ export default {
 		async onSubmit() {
 			alert(JSON.stringify(this.area))
 			let res = await AreaService.editArea(this.id,this.area);
+			// sent to mommaarea after save
+			this.$router.push({ path: "/momarea" });
 		},
 		onReset(event) {
         event.preventDefault()

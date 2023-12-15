@@ -15,7 +15,7 @@ class AreaService {
 			});
 		}
 	}
-	async getAreas() {
+	async indexAreas() {
 		return httpClient.get("/areas/index.json");
 	}
 	addArea(form_data=null) {

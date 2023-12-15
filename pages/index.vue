@@ -70,7 +70,7 @@ export default {
     };
   },
   async created() {
-    this.areas = (await AreaService.getAreas()).data.areas;
+    this.areas = (await AreaService.indexAreas()).data.areas;
     console.log(this.areas);
   },
   methods: {

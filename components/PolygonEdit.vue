@@ -46,6 +46,7 @@
 				:options="getMapOptions"
 				@update:center="centerUpdate" 
 				@update:zoom="zoomUpdate" 
+				@ready="fitMarkers"
 				ref="map">
 					<l-tile-layer 
 					:url="getTilesUrl" 
@@ -128,6 +129,7 @@ export default {
 			// province:null,
 			offices_province: [],
 			// polygon:null,
+			drawControl: null,
 		};
 	},
 	computed: {
@@ -181,10 +183,13 @@ export default {
 			})
 			};
 			this.polygons.push(polygon);
-		}
+			
 
-		this.loading = false;	
-		this.fitMarkers();	
+		}
+		console.log("area",this.area);
+
+		// this.loading = false;	
+		// this.fitMarkers();	
 		
 	 
 		
@@ -254,7 +259,7 @@ export default {
 		
 	},
 	async mounted() {
-		this.$nextTick(() => {
+		// this.$nextTick(() => {
       const map =this.$refs.map.mapObject;
 
       let editActions = [
@@ -274,11 +279,26 @@ export default {
         })
       ];
 
-      new L.Toolbar2.DrawToolbar({
-          position: this.position,
-      }).addTo(map);
+	  // remove polyline, marker ,rectangle and circle from drawControl
+	  
+	this.drawControl = new L.Toolbar2.DrawToolbar({
+		position: this.position,
+		actions: [
+			L.Toolbar2.DrawAction.Polygon,
+		],
+	})
+	if(this.area.polygon == null){
+		this.drawControl.addTo(map);
+	}
 
-      map.on('draw:created', function (e) {
+
+		
+
+     
+        
+    //   });
+
+	  map.on("draw:created", (e) =>{
         var type = e.layerType,
             layer = e.layer;
 		console.log("layer",layer);
@@ -287,19 +307,23 @@ export default {
           new L.Toolbar2.EditToolbar.Popup(event.latlng, {
             actions: editActions
           }).addTo(map, layer);
-        });
+        	});
+		console.log("area",this.area);
         if(type=='polygon'){
+			// console.log("ref",this.$refs.map.mapObject);
 			layer.addTo(map);
 			console.log("layer",layer);
-			this.area.polygon = "POLYGON(("+e.layers._layers[Object.keys(e.layers._layers)[0]]._latlngs[0].map(function (item) {
+			console.log("area",this.area);
+			this.area.polygon = "POLYGON(("+layer._latlngs[0].map(function (item) {
 				console.log("item",item);
 				return item.lat.toFixed(2) + " " + item.lng.toFixed(2);
-			}).join(",") + "," + e.layers._layers[Object.keys(e.layers._layers)[0]]._latlngs[0][0].lat.toFixed(2) + " " + e.layers._layers[Object.keys(e.layers._layers)[0]]._latlngs[0][0].lng.toFixed(2) + "))";
-		}
-        
-      });
+			}).join(",") + "," + layer._latlngs[0][0].lat.toFixed(2) + " " + layer._latlngs[0][0].lng.toFixed(2) + "))";
+			}
+			map.removeControl(this.drawControl);
+		});
+		
 
-	  this.$refs.map.mapObject.on("draw:edited", (e) => {
+	  map.on("draw:edited", (e) => {
 			console.log("draw:edited", e);
 			console.log("draw:edited", e.layers._layers[Object.keys(e.layers._layers)[0]]._latlngs);
 			// become this array e.layers._layers[Object.keys(e.layers._layers)[0]]._latlngs = Array(5) [ {…}, {…}, {…}, {…}, {…} ]
@@ -330,18 +354,24 @@ export default {
 			// // var polygon = e.layers._layers[Object.keys(e.layers._layers)[0]].toGeoJSON().geometry;
 			// let res = this.editArea(1, polygon);
 			// // await UserService.editArea(id, polygon);
-			// console.log("res", res);
+			console.log("areaedit", this.area);
 			this.area.polygon = "POLYGON(("+e.layers._layers[Object.keys(e.layers._layers)[0]]._latlngs[0].map(function (item) {
 				console.log("item",item);
 				return item.lat.toFixed(2) + " " + item.lng.toFixed(2);
 			}).join(",") + "," + e.layers._layers[Object.keys(e.layers._layers)[0]]._latlngs[0][0].lat.toFixed(2) + " " + e.layers._layers[Object.keys(e.layers._layers)[0]]._latlngs[0][0].lng.toFixed(2) + "))";
+			map.removeControl(this.drawControl);
 		});
-		this.$refs.map.mapObject.on("draw:deleted", (e) => {
+		map.on("draw:deleted", (e) => {
 			console.log("draw:deleted", e);
-			this.area.polygon = "";
+			this.area.polygon = null;
+			//add drawtoolbar
+			map.addControl(this.drawControl);
+			
+
+			
 		});
 		
-    })
+    // })
 	
 
 	// this.$refs.map.mapObject.addLayer(polygonmap);
@@ -399,8 +429,12 @@ export default {
 		centerUpdate(center) {
 			this.currentCenter = center;
 		},
-		fitMarkers() {
-			this.$refs.map.mapObject.fitBounds(this.offices_layer);
+		fitMarkers(e) {
+			console.log("fitMarkers",e);
+			if(this.offices_layer.length > 0){
+				this.$refs.map.mapObject.fitBounds(this.offices_layer);
+			}
+			this.loading = false;
 		},
 		generateLayer: function (city=null,province=null) {
 			return this.office_list.filter((x) => {
@@ -539,18 +573,5 @@ export default {
 	top: 50%;
 }
 
-.leaflet-touch .leaflet-draw-toolbar .leaflet-draw-draw-marker {
-	display: none;
-}
 
-.leaflet-touch .leaflet-draw-toolbar .leaflet-draw-draw-rectangle {
-	display: none;
-}
-
-.leaflet-touch .leaflet-draw-toolbar .leaflet-draw-draw-circle {
-	display: none;
-}
-.leaflet-touch .leaflet-draw-toolbar .leaflet-draw-draw-polyline {
-	display: none;
-}
 </style>

@@ -16,10 +16,11 @@
 				<b-form-group id="input-group-2" label="User:" label-for="input-2">
 					<b-form-select
 					id="input-2"
-					v-model="area.users[0].id"
+					v-model="selectedUsers"
 					:options="users"
 					placeholder=""
 					required
+					multiple
 					></b-form-select>
 				</b-form-group>
 			</b-col>
@@ -27,7 +28,7 @@
 				<b-button variant="primary" @click="onSubmit()" class="mt-4">Salva</b-button>
 			</b-col>
 		</b-row>
-		<polygon-edit :area="area" key="province"></polygon-edit>
+		<!-- <polygon-edit :area="area" key="province"></polygon-edit> -->
 	</b-tab>
     <b-tab title="Area citta">
 		<b-row>
@@ -45,10 +46,11 @@
 				<b-form-group id="input-group-2" label="User:" label-for="input-2">
 					<b-form-select
 					id="input-2"
-					v-model="area.users[0].id"
+					v-model="selectedUsers"
 					:options="users"
 					placeholder=""
 					required
+					multiple
 					></b-form-select>
 				</b-form-group>
 			</b-col>
@@ -56,9 +58,9 @@
 				<b-button variant="primary" @click="onSubmit()" class="mt-4">Salva</b-button>
 			</b-col>
 		</b-row>
-		<polygon-edit :area="area" key="city"></polygon-edit>
+		<!-- <polygon-edit :area="area" key="city"></polygon-edit> -->
 	</b-tab>
-    <b-tab title="Area poligono">
+    <b-tab title="Area poligono" active>
 		<b-row>
 			<b-col md="5" sm="12">
 				<b-form-group id="input-group-2" label="Nome area:" label-for="input-2">
@@ -74,10 +76,11 @@
 				<b-form-group id="input-group-2" label="User:" label-for="input-2">
 					<b-form-select
 					id="input-2"
-					v-model="area.users[0].id"
+					v-model="selectedUsers"
 					:options="users"
 					placeholder=""
 					required
+					multiple
 					></b-form-select>
 				</b-form-group>
 			</b-col>
@@ -120,17 +123,39 @@ export default {
 		};
 	},
 	async created(){
-		this.loading=true;
+		// this.loading=true;
 		var data = (await AreaService.addArea(null)).data;
 		//this.area=data.area;
 		this.users=data.users;
 		console.log("data",data);
-		this.loading=false;
+		// this.loading=false;
+	},
+	computed: {
+		selectedUsers: {
+			get() {
+				// if this.area.users is array 
+				console.log("area",this.area);
+				if (Array.isArray(this.area.users)) {
+					return this.area.users.map(user => user.id);
+				}else{
+					return this.area.users._ids;
+				}
+				
+				
+			},
+			set(value) {
+				console.log("value",value);
+				this.area.users = {_ids:value};
+				console.log("area",this.area);
+			}
+		}
 	},
 	methods: {
 		async onSubmit() {
 			alert(JSON.stringify(this.area))
 			let res = await AreaService.addArea(this.area);
+			// sent to mommaarea after save
+			this.$router.push({ path: "/momarea" });
 		},
 		onReset(event) {
         event.preventDefault()
