@@ -26,7 +26,15 @@ const routes = [
 				meta: { authorize: ["admin"] },
 				// lazy-loaded
 				component: pageComponent("add"),
-			},				
+			},
+			// Add your new route here
+			{
+				path: "/momarea/export",
+				name: "Export Spazi di Moma Area",
+				meta: { authorize: ["admin"] },
+				// lazy-loaded
+				component: pageComponent("export"),
+			},
 		]
 	}
 ];

@@ -55,7 +55,7 @@
         {{ row.item.polygon }}
       </template>
       <template #cell(users)="row">
-        {{ row.item.users[0].email }}
+        {{ row.item.users.length>0 ? row.item.users[0].email: "" }}
         <b-link :title="row.item.users.slice(1).map(user => user.email)" v-if="row.item.users.length>=2">
           <span>{{ "[+"+(row.item.users.length-1)+"]" }}</span>
         </b-link>
