@@ -106,13 +106,14 @@ export default {
     console.log(this.areas);
   },
   methods: {
-    deleteArea(id) {
-      // Handle delete logic here
+    async deleteArea(id) {
+      await AreaService.deleteArea(id);
+      this.areas = this.areas.filter(area => area.id != id);
     },
     async filterarea () {
       this.areas = (await AreaService.indexAreas(this.filterarea.name_area, this.filterarea.user_area)).data.areas;
     console.log(this.areas);
-    }
+    },
   },
 };
 </script>
