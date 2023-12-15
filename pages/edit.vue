@@ -19,7 +19,6 @@
 			multiple
 			></b-form-select>
 		</b-form-group>
-		<b-button variant="primary" @click="onSubmit()" class="mb-3">Salva</b-button>
 		<h5>Seleziona l´area</h5>
 		<b-form-group>
 			<b-row>
@@ -41,6 +40,7 @@
 			</b-row>
 		</b-form-group>
 		<polygon-edit :area="area" :selectedArea="selectedArea" ></polygon-edit>
+		<b-button variant="primary" @click="onSubmit()" class="mb-3">Salva</b-button>
 	</div>
 </template>
 

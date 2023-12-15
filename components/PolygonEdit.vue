@@ -140,9 +140,18 @@ export default {
 			console.log("selectedArea",val);
 			if(val=='polygon'){
 				this.drawControl.addTo(this.$refs.map.mapObject);
-			}else{
+				this.area.city=null;
+				this.area.province=null;
+			}else if(val=='city'){
 				this.drawControl.remove();
+				this.area.province=null;
+				this.area.polygon=null;
+			}else if(val=='province'){
+				this.drawControl.remove();
+				this.area.city=null;
+				this.area.polygon=null;
 			}
+			
 			this.offices_layer = this.generateLayer(this.area.city,this.area.province);
 			console.log(this.offices_layer)
 		},
