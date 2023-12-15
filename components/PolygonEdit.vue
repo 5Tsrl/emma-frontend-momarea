@@ -135,6 +135,30 @@ export default {
 	},
 	computed: {
 	},
+	watch: {
+		selectedArea: function (val) {
+			console.log("selectedArea",val);
+			if(val=='polygon'){
+				this.drawControl.addTo(this.$refs.map.mapObject);
+			}else{
+				this.drawControl.remove();
+			}
+			this.offices_layer = this.generateLayer(this.area.city,this.area.province);
+			console.log(this.offices_layer)
+		},
+		// city: function (val) {
+		// 	this.offices_layer = this.generateLayer(val);
+		// 	console.log(this.offices_layer)
+		// },
+		// province: function (val) {
+		// 	this.offices_layer = this.generateLayer(val);
+		// 	console.log(this.offices_layer)
+		// },
+		// polygon: function (val) {
+		// 	this.offices_layer = this.generateLayer(val);
+		// 	console.log(this.offices_layer)
+		// },
+	},
 	async created () {	
 		this.loading = true;	
 		let response = await UserService.getOffices(null, "id, name, company_id, lat, lon, Companies.name, Companies.type, address, city, coworking, info_coworking, province");
@@ -187,7 +211,7 @@ export default {
 			
 
 		}
-		console.log("area",this.area);
+		console.log("areacreated",this.area);
 
 		// this.loading = false;	
 		// this.fitMarkers();	
@@ -288,6 +312,7 @@ export default {
 			L.Toolbar2.DrawAction.Polygon,
 		],
 	})
+	console.log("adddraw",this.area.polygon,this.selectedArea);
 	if(this.area.polygon == null && this.selectedArea=='polygon'){
 		this.drawControl.addTo(map);
 	}
