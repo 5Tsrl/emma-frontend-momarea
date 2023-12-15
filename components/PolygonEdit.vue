@@ -2,7 +2,7 @@
     <div>
 		<b-form>
 			<b-form-row>
-				<b-col md="4" v-if="isAuthorized('admin, moma') && area.province!==null">
+				<b-col md="4" v-if="isAuthorized('admin, moma') && selectedArea=='province'">
 					<b-form-group label="Provincia:">
 					<b-form-select
 						v-model="area.province"
@@ -12,7 +12,7 @@
 						@input="updateProvince($event)"></b-form-select>
 					</b-form-group>
 				</b-col>
-				<b-col md="4" v-if="isAuthorized('admin, moma') && area.city!==null" >
+				<b-col md="4" v-if="isAuthorized('admin, moma') && selectedArea=='city'" >
 					<b-form-group label="Città:">
 					<b-form-select
 						v-model="area.city"
@@ -103,6 +103,7 @@ export default {
 	},
 	props: {
 		area: Object,
+		selectedArea: String,
 	},
 	data() {
 		return {
@@ -174,7 +175,7 @@ export default {
 		// this.province = this.offices_province[0].id;
 		
 		this.offices_layer = this.generateLayer(this.area.city,this.area.province);
-		if(this.area.polygon !== null){
+		if(this.area.polygon !== null && this.selectedArea=='polygon'){
 			let polygon = {
 			latlngs: this.area.polygon.replace("POLYGON((","").replace("))","").split(",").map(function (item) {
 				return item.split(" ").map(function (item) {
@@ -287,7 +288,7 @@ export default {
 			L.Toolbar2.DrawAction.Polygon,
 		],
 	})
-	if(this.area.polygon == null){
+	if(this.area.polygon == null && this.selectedArea=='polygon'){
 		this.drawControl.addTo(map);
 	}
 
