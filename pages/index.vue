@@ -52,7 +52,7 @@
         {{ row.item.province }}
       </template>
       <template #cell(polygon)="row">
-        {{ row.item.polygon }}
+        <img v-if= "row.item.polygon!=null" width="20" height="20" src="https://img.icons8.com/external-others-inmotus-design/67/external-Polygon-basic-elements-others-inmotus-design.png" alt="external-Polygon-basic-elements-others-inmotus-design"/>
       </template>
       <template #cell(users)="row">
         {{ row.item.users.length>0 ? row.item.users[0].email: "" }}
@@ -111,7 +111,7 @@ export default {
       this.areas = this.areas.filter(area => area.id != id);
     },
     async filterarea () {
-      this.areas = (await AreaService.indexAreas(this.filterarea.name_area, this.filterarea.user_area)).data.areas;
+      this.areas = (await AreaService.indexAreas(this.filter.name_area, this.filter.user_area)).data.areas;
     console.log(this.areas);
     },
   },
