@@ -39,8 +39,9 @@
 				</b-col>
 			</b-row>
 		</b-form-group>
-		<b-button variant="primary" @click="onSubmit()" class="mb-3">Salva</b-button>
 		<polygon-edit :area="area" :selectedArea="selectedArea" ></polygon-edit>
+		<br>
+		<b-button variant="primary" @click="onSubmit()" class="mb-3">Salva</b-button>
 	</div>
 </template>
 
@@ -87,12 +88,15 @@ export default {
 			get() {
 				// if this.area.users is array 
 				console.log("area",this.area);
-				if (Array.isArray(this.area.users)) {
-					return this.area.users.map(user => user.id);
+				if(this.area.users == null){
+					return [];
 				}else{
-					return this.area.users._ids;
-				}
-				
+					if (Array.isArray(this.area.users)) {
+						return this.area.users.map(user => user.id);
+					}else{
+						return this.area.users._ids;
+					}
+				}				
 				
 			},
 			set(value) {

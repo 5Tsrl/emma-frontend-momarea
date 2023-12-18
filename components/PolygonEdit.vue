@@ -217,13 +217,18 @@ export default {
 			})
 			};
 			this.polygons.push(polygon);
+			this.$refs.map.mapObject.fitBounds(polygon.latlngs);
+			this.loading = false;
 			
+
+		}else{
+			this.loading = false;	
+			this.fitMarkers();	
 
 		}
 		console.log("areacreated",this.area);
 
-		// this.loading = false;	
-		// this.fitMarkers();	
+		
 		
 	 
 		
@@ -351,8 +356,8 @@ export default {
 			console.log("area",this.area);
 			this.area.polygon = "POLYGON(("+layer._latlngs[0].map(function (item) {
 				console.log("item",item);
-				return item.lat.toFixed(2) + " " + item.lng.toFixed(2);
-			}).join(",") + "," + layer._latlngs[0][0].lat.toFixed(2) + " " + layer._latlngs[0][0].lng.toFixed(2) + "))";
+				return item.lat + " " + item.lng;
+			}).join(",") + "," + layer._latlngs[0][0].lat + " " + layer._latlngs[0][0].lng + "))";
 			}
 			map.removeControl(this.drawControl);
 		});
@@ -392,8 +397,8 @@ export default {
 			console.log("areaedit", this.area);
 			this.area.polygon = "POLYGON(("+e.layers._layers[Object.keys(e.layers._layers)[0]]._latlngs[0].map(function (item) {
 				console.log("item",item);
-				return item.lat.toFixed(2) + " " + item.lng.toFixed(2);
-			}).join(",") + "," + e.layers._layers[Object.keys(e.layers._layers)[0]]._latlngs[0][0].lat.toFixed(2) + " " + e.layers._layers[Object.keys(e.layers._layers)[0]]._latlngs[0][0].lng.toFixed(2) + "))";
+				return item.lat + " " + item.lng;
+			}).join(",") + "," + e.layers._layers[Object.keys(e.layers._layers)[0]]._latlngs[0][0].lat + " " + e.layers._layers[Object.keys(e.layers._layers)[0]]._latlngs[0][0].lng + "))";
 			map.removeControl(this.drawControl);
 		});
 		map.on("draw:deleted", (e) => {
