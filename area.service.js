@@ -3,7 +3,7 @@ import httpClient from "@/services/httpClient";
 var mime = require("mime-types");
 
 class AreaService {
-	editArea(id,form_data) {
+	async editArea(id,form_data) {
 		if(form_data == null){
 			return httpClient.get(`/areas/edit/${id}.json`);
 		}else{
@@ -28,7 +28,7 @@ class AreaService {
 		}
 		
 	}
-	addArea(form_data=null) {
+	async addArea(form_data=null) {
 		if(form_data == null){
 			return httpClient.get(`/areas/add.json`);
 		}else{
@@ -45,6 +45,17 @@ class AreaService {
 			method: "post",
 			url: `/areas/delete/${id}.json`,
 		});
+	}
+	// get companies to export data from export list
+	async getExportList(type = null, q = null) {
+		var params = new URLSearchParams();
+		if (type) {
+			params.append("type", type);
+		}
+		if (q) {
+			params.append("q", q);
+		}
+		return httpClient.get("/companies/ExportList.json?" + params.toString());
 	}
 
 }

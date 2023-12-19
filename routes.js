@@ -9,7 +9,7 @@ const routes = [
 			{
 				path: "/momarea",
 				name: "Spazi di Moma Area",
-				meta: { authorize: ["admin", "moma","moma_area"]  },
+				meta: { authorize: ["admin","moma_area"]  },
 				// lazy-loaded
 				component: pageComponent("index"),
 			},	
@@ -31,7 +31,7 @@ const routes = [
 			{
 				path: "/momarea/export",
 				name: "Export Spazi di Moma Area",
-				meta: { authorize: ["admin"] },
+				meta: { authorize: ["admin","moma_area"] },
 				// lazy-loaded
 				component: pageComponent("export"),
 			},
