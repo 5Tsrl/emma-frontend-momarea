@@ -9,7 +9,15 @@
             <template #cell(name)="row">
                 {{ row.item.name }}
             </template>
-            <!-- use b-tr and v-for with template row variable -->
+            <!-- count numbre of employees -->
+            <template #cell(num_employees)="row">
+                {{ row.item.offices.reduce((a, b) => a + b.num_employees, 0) }}
+            </template>
+                <template #cell(moma_name)="row">
+                    <template v-for="user in row.item.users">
+                        <b-tr >{{ user.first_name }}</b-tr> 
+                    </template>
+                </template>
 
             <template #cell(offices)="row" >
                 <template v-for="office in row.item.offices">
@@ -76,11 +84,15 @@ export default {
             ],
             fields: [
                 // { key: 'id', label: 'ID' },
-                { key: 'name', label: 'Name' },
-                { key: 'offices_num', label: 'numero di sedi' },
-                { key: 'offices', label: 'Sedi' },
+                { key: 'name', label: 'Name' , sortable: true},
+                //add moma Area name and moma Area email
+                {key:'moma_name', label:'Moma Area', sortable: true},
+                {key:'moma_email',label:'Moma Email', sortable: true},
+                { key: 'num_employees', label: 'Numero Impiegati / Studenti', sortable: true},
+                { key: 'offices_num', label: 'numero di sedi', sortable: true },
+                { key: 'offices', label: 'Sedi', sortable: true },
                 {key:'pscl', label: 'PSCL'},
-                { key: 'survey', label: 'Questionari' },
+                { key: 'survey', label: 'Questionari', sortable: true },
                 { key: 'surveyresults', label: 'Risultati Questionario'},
                 
             ],

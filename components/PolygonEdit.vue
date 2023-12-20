@@ -217,7 +217,10 @@ export default {
 			})
 			};
 			this.polygons.push(polygon);
-			this.$refs.map.mapObject.fitBounds(polygon.latlngs);
+			this.$refs.map.mapObject.fitBounds(polygon.latlngs);	
+			// remove drawControl
+			this.drawControl.remove();
+
 			this.loading = false;
 			
 
