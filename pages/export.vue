@@ -1,6 +1,34 @@
 <template>
     <div>
+    <b-row>
+      <b-col>
+        <b-form-input
+          v-model="filter.name"
+          placeholder="cerca per nome azienda"
+		  type="search"
+          v-on:keyup.enter="updateFilter()"></b-form-input>
+      </b-col>
+      <b-col>
+        <b-form-select
+          v-model="filter.type"
+          :options="company_types"
+          value-field="id"
+          text-field="name"></b-form-select>
+      </b-col>
+      <b-col>
+        <b-button @click="updateFilter()" variant="default"><i class="fa fa-search" aria-hidden="true"></i>
+          filtra
+        </b-button>
+        &nbsp;
+        <b-button variant="outline-primary" size="sm" @click="exportXls()">
+							<i class="fa fa-file-excel-o" aria-hidden="true"></i>
+							Esporta</b-button>
+      </b-col>
+    </b-row>
+
+    <hr />
         <b-table 
+        ref="table"
         striped
         hover
         :items="companies" 
@@ -13,11 +41,20 @@
             <template #cell(num_employees)="row">
                 {{ row.item.offices.reduce((a, b) => a + b.num_employees, 0) }}
             </template>
-                <template #cell(moma_name)="row">
-                    <template v-for="user in row.item.users">
-                        <b-tr >{{ user.first_name }}</b-tr> 
-                    </template>
+            <template #cell(moma_name)="row">
+                <template v-for="user in row.item.users">
+                    <b-tr>
+                        {{ user.first_name }} {{ user.last_name }}
+                    </b-tr> 
                 </template>
+            </template>
+            <template #cell(moma_email)="row">
+                <template v-for="user in row.item.users">
+                    <b-tr>
+                        {{ user.username }}
+                    </b-tr> 
+                </template>
+            </template>
 
             <template #cell(offices)="row" >
                 <template v-for="office in row.item.offices">
@@ -53,6 +90,17 @@
                     </b-tr>
                 </template>
             </template>
+            <template #cell(impatti)="row" >
+                <template v-for=" survey in  row.item.surveys">
+                    <b-tr v-if="row.item.offices[0] !== undefined">
+                        <b-icon
+                        @click="generatePSCLXlsx( survey.id,row.item.offices[0].id,row.item.name,row.item.offices[0].name)"
+                        icon="download"
+                        :title="`Foglio Impatti ${row.item.offices[0].name}`">
+                        </b-icon>
+                    </b-tr>  
+                </template>
+            </template>
             <template #cell(offices_num)="row">
                 {{ row.item.offices.length }}
             </template>
@@ -71,6 +119,7 @@ import UserService from "@/services/user.service";
 import AreaService from "../area.service";
 import Util from "@/mixing/util";
 var mime = require("mime-types");
+import XLSX from "xlsx";
 
 export default {
     mixins: [Util],
@@ -86,16 +135,25 @@ export default {
                 // { key: 'id', label: 'ID' },
                 { key: 'name', label: 'Name' , sortable: true},
                 //add moma Area name and moma Area email
-                {key:'moma_name', label:'Moma Area', sortable: true},
-                {key:'moma_email',label:'Moma Email', sortable: true},
+                {key:'moma_name', label:'Nome Mobility Manager', sortable: true},
+                {key:'moma_email',label:'Email Mobility Manager', sortable: true},
                 { key: 'num_employees', label: 'Numero Impiegati / Studenti', sortable: true},
                 { key: 'offices_num', label: 'numero di sedi', sortable: true },
                 { key: 'offices', label: 'Sedi', sortable: true },
                 {key:'pscl', label: 'PSCL'},
                 { key: 'survey', label: 'Questionari', sortable: true },
                 { key: 'surveyresults', label: 'Risultati Questionario'},
+                {key:'impatti', label: 'Foglio Impatti'},
                 
             ],
+            filter: {
+				type: null,
+				name: null,
+			},
+            company_types: [],
+            loading: false,
+            busy: false,
+            busyXlsx: false,
         };
     },
    async created() {
@@ -103,6 +161,9 @@ export default {
         await AreaService.getExportList().then((res) => {
             this.companies = res.data.companies;
         });
+        let res = await UserService.getCompanyTypes();
+        this.company_types = res.data.company_types;
+        
         this.loading = false;
     },
     methods: {
@@ -172,6 +233,84 @@ export default {
 			} finally {
 				this.busy = false;
 			}
+		},
+        async generatePSCLXlsx(survey_id, office_id,companyName,officeName) {
+			try {
+				this.busyXlsx = true;
+				const res = await UserService.generatePSCLXlsx(office_id,survey_id);
+				const url = window.URL.createObjectURL(new Blob([res.data]));
+				const link = document.createElement("a");
+				link.href = url;
+
+				link.setAttribute("download", `pscl-${companyName.replace(" ", "_")}-${officeName.replace(" ", "_")}.xls`);
+				document.body.appendChild(link);
+				link.click();
+			} catch (e) {
+				this.$bvToast.toast(String(e), {
+					title: "Errore",
+					variant: "danger",
+					autoHideDelay: 2000,
+					appendToast: true,
+				});
+				console.log(e);
+			} finally {
+				this.busyXlsx = false;
+			}
+		},	
+        async updateFilter() {
+			await AreaService.getExportList(
+                this.filter.type,
+				this.filter.name
+            ).then((res) => {
+            this.companies = res.data.companies;
+        });
+			localStorage.setItem("filter_company_name", this.filter.name);
+			localStorage.setItem("filter_company_type", this.filter.type);
+		},
+        exportXls() {
+            try {
+             // Get table rows
+            const rows = this.$refs.table.$el.querySelectorAll('tr');
+
+            // Define columns to omit
+            const omitColumns = ['PSCL', 'Risultati Questionario', 'Foglio Impatti'];
+
+            // Map rows to data
+            const data = Array.from(rows).map(row => {
+                const cells = Array.from(row.querySelectorAll('td'));
+
+                if (cells.length === 0) {
+                    return null; // or you can return an empty object, depending on your preference
+                }
+
+                return this.fields
+                    .map((field, index) => ({ index, label: field.label }))
+                    .filter(field => !omitColumns.includes(field.label))
+                    .map(field => cells[field.index] ? cells[field.index].innerText : '');
+            });
+
+            // Add headers
+            const headers = this.fields
+            .map(field => field.label)
+            .filter(label => !omitColumns.includes(label));
+            data.unshift(headers);
+            console.log(data);
+            // Create a workbook
+			let wb = XLSX.utils.book_new();
+			wb.Props = {
+				Title: "Esportazione Excel",
+				Subject: "Esportazione",
+				Author: "--",
+				CreatedDate: new Date(),
+			};
+			wb.SheetNames.push("moma area table");
+			// Convert data to worksheet
+            const ws = XLSX.utils.json_to_sheet(data);
+			wb.Sheets["moma area table"] = ws;
+			XLSX.writeFile(wb, "indicatore.xlsx");
+            } catch (err) {
+                console.error(err);
+            }
 		},
     },
 };
