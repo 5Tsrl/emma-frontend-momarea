@@ -146,10 +146,24 @@ export default {
 				this.drawControl.remove();
 				this.area.province=null;
 				this.area.polygon=null;
+				// remove polygon layer
+				this.polygons=[];
+				// remove polygon from map
+				this.$refs.map.mapObject.eachLayer(function(layer){
+					if(layer instanceof L.Polygon){
+						layer.remove();
+					}
+				});
 			}else if(val=='province'){
 				this.drawControl.remove();
 				this.area.city=null;
 				this.area.polygon=null;
+				this.polygons=[];
+				this.$refs.map.mapObject.eachLayer(function(layer){
+					if(layer instanceof L.Polygon){
+						layer.remove();
+					}
+				});
 			}
 			
 			this.offices_layer = this.generateLayer(this.area.city,this.area.province);
