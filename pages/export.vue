@@ -33,13 +33,14 @@
         hover
         :items="companies" 
         :fields="fields"   
-        :busy="loading">
+        :busy="loading"
+        :v-model="tablevalues">
             <template #cell(name)="row">
                 {{ row.item.name }}
             </template>
             <!-- count numbre of employees -->
             <template #cell(num_employees)="row">
-                {{ row.item.offices.reduce((a, b) => a + b.num_employees, 0) }}
+                {{ row.item.name=="Totale"?row.item.num_employees:row.item.offices.reduce((a, b) => a + b.num_employees, 0) }}
             </template>
             <template #cell(moma_name)="row">
                 <template v-for="user in row.item.users">
@@ -68,7 +69,7 @@
                     <b-tr v-if="office.pscl!==null">
                         <b-icon
                         @click="DownloadPscl(row.item.id,office.id,row.item.name)"
-                        icon="download"
+                        :icon="iconDownload(row.item.id,office.id)"
                         :title="`PSCL ${office.name}`">
                         </b-icon>
                     </b-tr>  
@@ -102,7 +103,7 @@
                 </template>
             </template>
             <template #cell(offices_num)="row">
-                {{ row.item.offices.length }}
+                {{ row.item.name=="Totale"?row.item.offices_num:row.item.offices.length }}
             </template>
             <template #table-busy>
                 <div class="text-center text-danger my-2">
@@ -154,12 +155,31 @@ export default {
             loading: false,
             busy: false,
             busyXlsx: false,
+            tablevalues: [],
         };
     },
    async created() {
         this.loading = true;
         await AreaService.getExportList().then((res) => {
             this.companies = res.data.companies;
+        });
+        // add last row with sum of employees and offices
+        console.log(this.companies);
+        this.companies.push({
+            id: 0,
+            name: "Totale",
+            moma_name: "",
+            offices: [],
+            // sum all employees
+            num_employees: this.companies.reduce((total, company) => {
+                // console.log(company);
+                // console.log(company.offices.reduce((total, office) => total + (office.num_employees!=null ? office.num_employees:0), 0));
+                // console.log(total);
+                return total + company.offices.reduce((total, office) => total + (office.num_employees!=null ? office.num_employees:0), 0);}, 0),
+            // sum all offices
+            offices_num: this.companies.reduce((acc, company) => {
+            return acc + company.offices.length;
+        }, 0),
         });
         let res = await UserService.getCompanyTypes();
         this.company_types = res.data.company_types;
@@ -312,6 +332,16 @@ export default {
                 console.error(err);
             }
 		},
+        // create a function to return the icon name based files.length
+        iconDownload(company_id, office_id) {
+            let files = UserService.listPSCL(company_id, office_id);
+            // console.log(files);
+            if(files.length>0){
+                return "download";
+            }else{
+                return "x-circle";
+            }
+        },
     },
 };
 </script>
