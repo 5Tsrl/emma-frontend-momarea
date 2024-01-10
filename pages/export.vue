@@ -65,14 +65,24 @@
                 <b-tr v-for="row.item.offices.map(office => office.name) ">{{}}</b-tr> -->
             </template>
             <template #cell(pscl)="row" >
-                <template v-for="office in row.item.offices">
+                <template v-for="office in row.item.offices" v-if="row.item.name!=='Totale'">
                     <b-tr v-if="office.pscl!==null">
                         <b-icon
                         @click="DownloadPscl(row.item.id,office.id,row.item.name)"
-                        :icon="iconDownload(row.item.id,office.id)"
-                        :title="`PSCL ${office.name}`">
+                        :icon="iconDownload(office.files)"
+                        :title="`PSCL ${office.name}`"
+                        v-bind:style="{ color: iconColor(office.files) }">
                         </b-icon>
                     </b-tr>  
+                </template>
+                <template v-if="row.item.name=='Totale'">
+                    <b-tr>
+                        <b-icon
+                        @click="ZipPscl()"
+                        icon="download"
+                        title="PSCL Zip">
+                        </b-icon>
+                    </b-tr>
                 </template>
             </template>
             <template #cell(survey)="row">
@@ -163,8 +173,50 @@ export default {
         await AreaService.getExportList().then((res) => {
             this.companies = res.data.companies;
         });
+        
+        console.log("companies",this.companies);
+        // add column with existence of pscl
+        this.companies.forEach(async (company) => {
+            company.offices.forEach(async (office) => {
+                    if(office.pscl!==null){
+                    // check if files are in cache
+                    let files = JSON.parse(localStorage.getItem(`pscl-${company.id}-${office.id}`));
+                    // if files are in cache
+                    if(files){
+                        // add column called files to office
+                        office.files = files;
+                    }else{
+                        // if files are not in cache
+                        // get files from server
+                        // setTimeout(async () => {
+                        let files = (await UserService.listPSCL(company.id, office.id)).data.files;
+                        // add column called files to office
+                        office.files = files;
+                        // save in cache the files
+                        localStorage.setItem(
+                            `pscl-${company.id}-${office.id}`,
+                            JSON.stringify(files)
+                        );
+                        // }, 300);
+                    }
+                }
+			    
+                
+                
+            });
+        });
+        //remove form cache the files after 5 minutes
+        setTimeout(() => {
+            this.companies.forEach((company) => {
+                company.offices.forEach((office) => {
+                    if(office.pscl!==null){
+                        localStorage.removeItem(`pscl-${company.id}-${office.id}`);
+                    }
+                });
+            });
+        }, 300000);
+        // console.log("companies",this.companies);
         // add last row with sum of employees and offices
-        console.log(this.companies);
         this.companies.push({
             id: 0,
             name: "Totale",
@@ -333,14 +385,35 @@ export default {
             }
 		},
         // create a function to return the icon name based files.length
-        iconDownload(company_id, office_id) {
-            let files = UserService.listPSCL(company_id, office_id);
+        iconDownload(files) {
             // console.log(files);
             if(files.length>0){
                 return "download";
             }else{
                 return "x-circle";
             }
+        },
+        iconColor(files) {
+            // console.log(files);
+            if(files.length>0){
+                return "green";
+            }else{
+                return "red";
+            }
+        },
+        async ZipPscl(){
+            // take only companies id and offices id from this.companies object
+            let companies = this.companies.map((company) => {
+                return {
+                    id: company.id,
+                    offices: company.offices.map((office) => {
+                        return office.id;
+                    }),
+                };
+            });
+            console.log("filtercompanies",companies);
+            await UserService.downloadPSCLZip(companies);
+
         },
     },
 };

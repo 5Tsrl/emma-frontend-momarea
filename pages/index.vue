@@ -25,8 +25,17 @@
             <b-button @click.prevent="filterarea()">Filtra</b-button>
           </b-form-group>
         </b-col>
-
-        <b-col md="5" v-if="isAuthorized('admin')" class="pt-4">
+        <b-col md="2" v-if="isAuthorized('admin','moma_area')" class="pt-4">
+              <b-link
+                to="/momarea/export"
+                class="btn btn-sm btn-info"
+                title="Esporta dati in massa">
+                <i class="download" aria-hidden="true"></i>
+                Esporta dati in massa
+              </b-link>
+        </b-col>
+        
+        <b-col md="3" v-if="isAuthorized('admin')" class="pt-4">
               <b-link
                 to="/momarea/add"
                 class="btn btn-sm float-right btn-success"
@@ -35,6 +44,7 @@
                 Aggiungi Area
               </b-link>
         </b-col>
+        
       </b-form-row>
     </b-form>
     <br>
