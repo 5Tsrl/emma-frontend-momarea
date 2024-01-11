@@ -25,7 +25,7 @@
             <b-button @click.prevent="filterarea()">Filtra</b-button>
           </b-form-group>
         </b-col>
-        <b-col md="2" v-if="isAuthorized('admin','moma_area')" class="pt-4">
+        <b-col md="2" v-if="isAuthorized('admin, moma_area')" class="pt-4">
               <b-link
                 to="/momarea/export"
                 class="btn btn-sm btn-info"
@@ -75,9 +75,11 @@
       </template>
       <template #cell(actions)="row">
         <b-link
+              v-if="isAuthorized('admin')"
               :to="`/momarea/edit/${row.item.id}`"
               title="Modifica Area"><b-icon icon="pencil"></b-icon></b-link>&nbsp;
         <b-icon
+          v-if="isAuthorized('admin')"
           @click="deleteArea(row.item.id)"
           icon="trash"
           title="Elimina Area">

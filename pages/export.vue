@@ -1,128 +1,99 @@
 <template>
-    <div>
+<div>
     <b-row>
-      <b-col>
-        <b-form-input
-          v-model="filter.name"
-          placeholder="cerca per nome azienda"
-		  type="search"
-          v-on:keyup.enter="updateFilter()"></b-form-input>
-      </b-col>
-      <b-col>
-        <b-form-select
-          v-model="filter.type"
-          :options="company_types"
-          value-field="id"
-          text-field="name"></b-form-select>
-      </b-col>
-      <b-col>
-        <b-button @click="updateFilter()" variant="default"><i class="fa fa-search" aria-hidden="true"></i>
-          filtra
-        </b-button>
-        &nbsp;
-        <b-button variant="outline-primary" size="sm" @click="exportXls()">
-							<i class="fa fa-file-excel-o" aria-hidden="true"></i>
-							Esporta</b-button>
-      </b-col>
+        <b-col>
+            <b-form-input v-model="filter.name" placeholder="cerca per nome azienda" type="search" v-on:keyup.enter="updateFilter()"></b-form-input>
+        </b-col>
+        <b-col>
+            <b-form-select v-model="filter.type" :options="company_types" value-field="id" text-field="name"></b-form-select>
+        </b-col>
+        <b-col>
+            <b-button @click="updateFilter()" variant="default"><i class="fa fa-search" aria-hidden="true"></i>
+                filtra
+            </b-button>
+            &nbsp;
+            <b-button variant="outline-primary" @click="exportXls()">
+                <i class="fa fa-file-excel-o" aria-hidden="true"></i>
+                Esporta</b-button>
+        </b-col>
     </b-row>
 
     <hr />
-        <b-table 
-        ref="table"
-        striped
-        hover
-        :items="companies" 
-        :fields="fields"   
-        :busy="loading"
-        :v-model="tablevalues">
-            <template #cell(name)="row">
-                {{ row.item.name }}
+    <b-table ref="table" striped hover :items="companies" :fields="fields" :busy="loading" :v-model="tablevalues">
+        <template #cell(name)="row">
+            {{ row.item.name }}
+        </template>
+        <!-- count numbre of employees -->
+        <template #cell(num_employees)="row">
+            {{ row.item.name=="Totale"?row.item.num_employees:row.item.offices.reduce((a, b) => a + b.num_employees, 0) }}
+        </template>
+        <template #cell(moma_name)="row">
+            <template v-for="user in row.item.users">
+                <b-tr>
+                    {{ user.first_name }} {{ user.last_name }}
+                </b-tr>
             </template>
-            <!-- count numbre of employees -->
-            <template #cell(num_employees)="row">
-                {{ row.item.name=="Totale"?row.item.num_employees:row.item.offices.reduce((a, b) => a + b.num_employees, 0) }}
+        </template>
+        <template #cell(moma_email)="row">
+            <template v-for="user in row.item.users">
+                <b-tr>
+                    {{ user.username }}
+                </b-tr>
             </template>
-            <template #cell(moma_name)="row">
-                <template v-for="user in row.item.users">
-                    <b-tr>
-                        {{ user.first_name }} {{ user.last_name }}
-                    </b-tr> 
-                </template>
-            </template>
-            <template #cell(moma_email)="row">
-                <template v-for="user in row.item.users">
-                    <b-tr>
-                        {{ user.username }}
-                    </b-tr> 
-                </template>
-            </template>
+        </template>
 
-            <template #cell(offices)="row" >
-                <template v-for="office in row.item.offices">
-                    <b-tr v-if="office.pscl!==null">{{ office.name }}</b-tr>  
-                </template>
-                <!-- {{ row.item.offices.length>0 ? "" : "" }}
+        <template #cell(offices)="row">
+            <template v-for="office in row.item.offices">
+                <b-tr>{{ office.name }}</b-tr>
+            </template>
+            <!-- {{ row.item.offices.length>0 ? "" : "" }}
                 <b-tr v-for="row.item.offices.map(office => office.name) ">{{}}</b-tr> -->
+        
+            <template v-for="office in row.item.offices" v-if="row.item.name!=='Totale'">
+                <b-tr>
+                    <b-icon @click="DownloadPscl(row.item.id,office.id,row.item.name)" :icon="iconDownload(office.pscl)" :title="`PSCL ${office.name}`" v-bind:style="{ color: iconColor(office.pscl) }">
+                    </b-icon>
+                </b-tr>
             </template>
-            <template #cell(pscl)="row" >
-                <template v-for="office in row.item.offices" v-if="row.item.name!=='Totale'">
-                    <b-tr v-if="office.pscl!==null">
-                        <b-icon
-                        @click="DownloadPscl(row.item.id,office.id,row.item.name)"
-                        :icon="iconDownload(office.files)"
-                        :title="`PSCL ${office.name}`"
-                        v-bind:style="{ color: iconColor(office.files) }">
-                        </b-icon>
-                    </b-tr>  
-                </template>
-                <template v-if="row.item.name=='Totale'">
-                    <b-tr>
-                        <b-icon
-                        @click="ZipPscl()"
-                        icon="download"
-                        title="PSCL Zip">
-                        </b-icon>
-                    </b-tr>
-                </template>
+            <template v-if="row.item.name=='Totale'">
+                <b-tr>
+                    <b-icon @click="ZipPscl()" icon="download" title="PSCL Zip">
+                    </b-icon>
+                </b-tr>
             </template>
-            <template #cell(survey)="row">
-                <template v-for="survey in row.item.surveys">
-                    <b-tr v-if="survey!==null">{{ survey.name }}</b-tr>
-                </template>
+        </template>
+        <template #cell(survey)="row">
+            <template v-for="survey in row.item.surveys">
+                <b-tr v-if="survey!==null">{{ survey.name }}</b-tr>
             </template>
-            <template #cell(surveyresults)="row">
-                <template v-for="survey in row.item.surveys">
-                    <b-tr v-if="survey!==null">
-                        <b-icon
-                        @click="exportSurveyData(survey.id,survey.name)"
-                        icon="download"
-                        :title="`Risultati Questionario ${survey.name}`">
-                        </b-icon>
-                    </b-tr>
-                </template>
+        </template>
+        <template #cell(surveyresults)="row">
+            <template v-for="survey in row.item.surveys">
+                <b-tr v-if="survey!==null">
+                    <b-icon @click="exportSurveyData(survey.id,survey.name)" icon="download" :title="`Risultati Questionario ${survey.name}`">
+                    </b-icon>
+                </b-tr>
             </template>
-            <template #cell(impatti)="row" >
-                <template v-for=" survey in  row.item.surveys">
-                    <b-tr v-if="row.item.offices[0] !== undefined">
-                        <b-icon
-                        @click="generatePSCLXlsx( survey.id,row.item.offices[0].id,row.item.name,row.item.offices[0].name)"
-                        icon="download"
-                        :title="`Foglio Impatti ${row.item.offices[0].name}`">
-                        </b-icon>
-                    </b-tr>  
-                </template>
+        </template>
+        <template #cell(impatti)="row">
+            <template v-for=" survey in  row.item.surveys">
+                <b-tr v-if="row.item.offices[0] !== undefined">
+                    <b-icon @click="generatePSCLXlsx( survey.id,row.item.offices[0].id,row.item.name,row.item.offices[0].name)" icon="download" :title="`Foglio Impatti ${row.item.offices[0].name}`">
+                    </b-icon>
+                </b-tr>
             </template>
-            <template #cell(offices_num)="row">
-                {{ row.item.name=="Totale"?row.item.offices_num:row.item.offices.length }}
-            </template>
-            <template #table-busy>
-                <div class="text-center text-danger my-2">
+        </template>
+        <template #cell(offices_num)="row">
+            {{ row.item.name=="Totale"?row.item.offices_num:row.item.offices.length }}
+        </template>
+        <template #table-busy>
+            <div class="text-center text-danger my-2">
                 <b-spinner class="align-middle"></b-spinner>
                 <strong>Loading...</strong>
-                </div>
-            </template>
-        </b-table>
-    </div>
+            </div>
+        </template>
+    </b-table>
+</div>
 </template>
 
 <script>
@@ -136,31 +107,75 @@ export default {
     mixins: [Util],
     data() {
         return {
-            companies: [
-                { id: 1, name: 'Company A', offices: 'Area 1' },
-                { id: 2, name: 'Company B', offices: 'Area 2' },
-                { id: 3, name: 'Company C', offices: 'Area 1' },
+            companies: [{
+                    id: 1,
+                    name: 'Company A',
+                    offices: 'Area 1'
+                },
+                {
+                    id: 2,
+                    name: 'Company B',
+                    offices: 'Area 2'
+                },
+                {
+                    id: 3,
+                    name: 'Company C',
+                    offices: 'Area 1'
+                },
                 // Add more companies here
             ],
             fields: [
                 // { key: 'id', label: 'ID' },
-                { key: 'name', label: 'Name' , sortable: true},
+                {
+                    key: 'name',
+                    label: 'Name',
+                    sortable: true
+                },
                 //add moma Area name and moma Area email
-                {key:'moma_name', label:'Nome Mobility Manager', sortable: true},
-                {key:'moma_email',label:'Email Mobility Manager', sortable: true},
-                { key: 'num_employees', label: 'Numero Impiegati / Studenti', sortable: true},
-                { key: 'offices_num', label: 'numero di sedi', sortable: true },
-                { key: 'offices', label: 'Sedi', sortable: true },
-                {key:'pscl', label: 'PSCL'},
-                { key: 'survey', label: 'Questionari', sortable: true },
-                { key: 'surveyresults', label: 'Risultati Questionario'},
-                {key:'impatti', label: 'Foglio Impatti'},
-                
+                {
+                    key: 'moma_name',
+                    label: 'Nome Mobility Manager',
+                    sortable: true
+                },
+                {
+                    key: 'moma_email',
+                    label: 'Email Mobility Manager',
+                    sortable: true
+                },
+                {
+                    key: 'num_employees',
+                    label: 'Numero Impiegati / Studenti',
+                    sortable: true
+                },
+                {
+                    key: 'offices_num',
+                    label: 'numero di sedi',
+                    sortable: true
+                },
+                {
+                    key: 'offices',
+                    label: 'Sedi',
+                    sortable: true
+                },
+                {
+                    key: 'survey',
+                    label: 'Questionari',
+                    sortable: true
+                },
+                {
+                    key: 'surveyresults',
+                    label: 'Risultati Questionario'
+                },
+                {
+                    key: 'impatti',
+                    label: 'Foglio Impatti'
+                },
+
             ],
             filter: {
-				type: null,
-				name: null,
-			},
+                type: null,
+                name: null,
+            },
             company_types: [],
             loading: false,
             busy: false,
@@ -168,54 +183,13 @@ export default {
             tablevalues: [],
         };
     },
-   async created() {
+    async created() {
         this.loading = true;
-        await AreaService.getExportList().then((res) => {
-            this.companies = res.data.companies;
-        });
-        
-        console.log("companies",this.companies);
-        // add column with existence of pscl
-        this.companies.forEach(async (company) => {
-            company.offices.forEach(async (office) => {
-                    if(office.pscl!==null){
-                    // check if files are in cache
-                    let files = JSON.parse(localStorage.getItem(`pscl-${company.id}-${office.id}`));
-                    // if files are in cache
-                    if(files){
-                        // add column called files to office
-                        office.files = files;
-                    }else{
-                        // if files are not in cache
-                        // get files from server
-                        // setTimeout(async () => {
-                        let files = (await UserService.listPSCL(company.id, office.id)).data.files;
-                        // add column called files to office
-                        office.files = files;
-                        // save in cache the files
-                        localStorage.setItem(
-                            `pscl-${company.id}-${office.id}`,
-                            JSON.stringify(files)
-                        );
-                        // }, 300);
-                    }
-                }
-			    
-                
-                
-            });
-        });
-        //remove form cache the files after 5 minutes
-        setTimeout(() => {
-            this.companies.forEach((company) => {
-                company.offices.forEach((office) => {
-                    if(office.pscl!==null){
-                        localStorage.removeItem(`pscl-${company.id}-${office.id}`);
-                    }
-                });
-            });
-        }, 300000);
-        // console.log("companies",this.companies);
+        let r = await AreaService.getExportList();
+        this.companies = r.data.companies;
+        let res = await UserService.getCompanyTypes();
+        this.company_types = res.data.company_types;
+
         // add last row with sum of employees and offices
         this.companies.push({
             id: 0,
@@ -224,25 +198,24 @@ export default {
             offices: [],
             // sum all employees
             num_employees: this.companies.reduce((total, company) => {
-                // console.log(company);
-                // console.log(company.offices.reduce((total, office) => total + (office.num_employees!=null ? office.num_employees:0), 0));
-                // console.log(total);
-                return total + company.offices.reduce((total, office) => total + (office.num_employees!=null ? office.num_employees:0), 0);}, 0),
+                return total + company.offices.reduce((total, office) => total + (office.num_employees != null ? office.num_employees : 0), 0);
+            }, 0),
             // sum all offices
             offices_num: this.companies.reduce((acc, company) => {
-            return acc + company.offices.length;
-        }, 0),
+                return acc + company.offices.length;
+            }, 0),
         });
-        let res = await UserService.getCompanyTypes();
-        this.company_types = res.data.company_types;
-        
-        this.loading = false;
+
+        this.loading = false;            
     },
     methods: {
-        async DownloadPscl(company_id, office_id,companyName) {
+        sleep(milliseconds) {
+            return new Promise((resolve) => setTimeout(resolve, milliseconds));
+        },
+        async DownloadPscl(company_id, office_id, companyName) {
             let files = (await UserService.listPSCL(company_id, office_id)).data.files;
-            if(files.length>0){
-                let fname = files[files.length-1];
+            if (files.length > 0) {
+                let fname = files[files.length - 1];
                 console.log(fname);
                 try {
                     this.busy = true;
@@ -268,7 +241,7 @@ export default {
                 } finally {
                     this.busy = false;
                 }
-            }else{
+            } else {
                 this.$bvToast.toast("Nessun file caricato", {
                     title: "No Uploads",
                     variant: "warning",
@@ -279,129 +252,132 @@ export default {
             // await AreaService.downloadPscl(company_id, office_id);
         },
         async exportSurveyData(survey_id, survey_name) {
-			try {
-				this.busy = true;
-				const res = await UserService.exportSurveyData(survey_id);
-				let ext = mime.extension(res.data.type);
-				console.log(res);
-				if (ext === "json") {
-					this.$bvToast.toast("Error in questionnaire export", {
-						title: "No Uploads",
-						variant: "warning",
-						autoHideDelay: 2000,
-						appendToast: true,
-					});
-					this.busy = false;
-					return;
-				}
-				const url = window.URL.createObjectURL(new Blob([res.data]));
-				const link = document.createElement("a");
-				link.href = url;
-				link.setAttribute("download", `${survey_name}.${ext}`);
-				document.body.appendChild(link);
-				link.click();
-			} catch (error) {
-				console.log(error);
-			} finally {
-				this.busy = false;
-			}
-		},
-        async generatePSCLXlsx(survey_id, office_id,companyName,officeName) {
-			try {
-				this.busyXlsx = true;
-				const res = await UserService.generatePSCLXlsx(office_id,survey_id);
-				const url = window.URL.createObjectURL(new Blob([res.data]));
-				const link = document.createElement("a");
-				link.href = url;
+            try {
+                this.busy = true;
+                const res = await UserService.exportSurveyData(survey_id);
+                let ext = mime.extension(res.data.type);
+                console.log(res);
+                if (ext === "json") {
+                    this.$bvToast.toast("Error in questionnaire export", {
+                        title: "No Uploads",
+                        variant: "warning",
+                        autoHideDelay: 2000,
+                        appendToast: true,
+                    });
+                    this.busy = false;
+                    return;
+                }
+                const url = window.URL.createObjectURL(new Blob([res.data]));
+                const link = document.createElement("a");
+                link.href = url;
+                link.setAttribute("download", `${survey_name}.${ext}`);
+                document.body.appendChild(link);
+                link.click();
+            } catch (error) {
+                console.log(error);
+            } finally {
+                this.busy = false;
+            }
+        },
+        async generatePSCLXlsx(survey_id, office_id, companyName, officeName) {
+            try {
+                this.busyXlsx = true;
+                const res = await UserService.generatePSCLXlsx(office_id, survey_id);
+                const url = window.URL.createObjectURL(new Blob([res.data]));
+                const link = document.createElement("a");
+                link.href = url;
 
-				link.setAttribute("download", `pscl-${companyName.replace(" ", "_")}-${officeName.replace(" ", "_")}.xls`);
-				document.body.appendChild(link);
-				link.click();
-			} catch (e) {
-				this.$bvToast.toast(String(e), {
-					title: "Errore",
-					variant: "danger",
-					autoHideDelay: 2000,
-					appendToast: true,
-				});
-				console.log(e);
-			} finally {
-				this.busyXlsx = false;
-			}
-		},	
+                link.setAttribute("download", `pscl-${companyName.replace(" ", "_")}-${officeName.replace(" ", "_")}.xls`);
+                document.body.appendChild(link);
+                link.click();
+            } catch (e) {
+                this.$bvToast.toast(String(e), {
+                    title: "Errore",
+                    variant: "danger",
+                    autoHideDelay: 2000,
+                    appendToast: true,
+                });
+                console.log(e);
+            } finally {
+                this.busyXlsx = false;
+            }
+        },
         async updateFilter() {
-			await AreaService.getExportList(
+            await AreaService.getExportList(
                 this.filter.type,
-				this.filter.name
+                this.filter.name
             ).then((res) => {
-            this.companies = res.data.companies;
-        });
-			localStorage.setItem("filter_company_name", this.filter.name);
-			localStorage.setItem("filter_company_type", this.filter.type);
-		},
+                this.companies = res.data.companies;
+            });
+            localStorage.setItem("filter_company_name", this.filter.name);
+            localStorage.setItem("filter_company_type", this.filter.type);
+        },
         exportXls() {
             try {
-             // Get table rows
-            const rows = this.$refs.table.$el.querySelectorAll('tr');
+                // Get table rows
+                const rows = this.$refs.table.$el.querySelectorAll('tr');
 
-            // Define columns to omit
-            const omitColumns = ['PSCL', 'Risultati Questionario', 'Foglio Impatti'];
+                // Define columns to omit
+                const omitColumns = ['PSCL', 'Risultati Questionario', 'Foglio Impatti'];
 
-            // Map rows to data
-            const data = Array.from(rows).map(row => {
-                const cells = Array.from(row.querySelectorAll('td'));
+                // Map rows to data
+                const data = Array.from(rows).map(row => {
+                    const cells = Array.from(row.querySelectorAll('td'));
 
-                if (cells.length === 0) {
-                    return null; // or you can return an empty object, depending on your preference
-                }
+                    if (cells.length === 0) {
+                        return null; // or you can return an empty object, depending on your preference
+                    }
 
-                return this.fields
-                    .map((field, index) => ({ index, label: field.label }))
-                    .filter(field => !omitColumns.includes(field.label))
-                    .map(field => cells[field.index] ? cells[field.index].innerText : '');
-            });
+                    return this.fields
+                        .map((field, index) => ({
+                            index,
+                            label: field.label
+                        }))
+                        .filter(field => !omitColumns.includes(field.label))
+                        .map(field => cells[field.index] ? cells[field.index].innerText : '');
+                });
 
-            // Add headers
-            const headers = this.fields
-            .map(field => field.label)
-            .filter(label => !omitColumns.includes(label));
-            data.unshift(headers);
-            console.log(data);
-            // Create a workbook
-			let wb = XLSX.utils.book_new();
-			wb.Props = {
-				Title: "Esportazione Excel",
-				Subject: "Esportazione",
-				Author: "--",
-				CreatedDate: new Date(),
-			};
-			wb.SheetNames.push("moma area table");
-			// Convert data to worksheet
-            const ws = XLSX.utils.json_to_sheet(data);
-			wb.Sheets["moma area table"] = ws;
-			XLSX.writeFile(wb, "indicatore.xlsx");
+                // Add headers
+                const headers = this.fields
+                    .map(field => field.label)
+                    .filter(label => !omitColumns.includes(label));
+                data.unshift(headers);
+                console.log(data);
+                // Create a workbook
+                let wb = XLSX.utils.book_new();
+                wb.Props = {
+                    Title: "Esportazione Excel",
+                    Subject: "Esportazione",
+                    Author: "--",
+                    CreatedDate: new Date(),
+                };
+                wb.SheetNames.push("moma area table");
+                // Convert data to worksheet
+                const ws = XLSX.utils.json_to_sheet(data);
+                wb.Sheets["moma area table"] = ws;
+                XLSX.writeFile(wb, "indicatore.xlsx");
             } catch (err) {
                 console.error(err);
             }
-		},
+        },
         // create a function to return the icon name based files.length
         iconDownload(files) {
             // console.log(files);
-            if(files.length>0){
+            if (files.length > 0) {
                 return "download";
-            }else{
+            } else {
                 return "x-circle";
             }
         },
         iconColor(files) {
             // console.log(files);
-            if(files.length>0){
+            if (files.length > 0) {
                 return "green";
-            }else{
+            } else {
                 return "red";
             }
         },
-        async ZipPscl(){
+        async ZipPscl() {
             // take only companies id and offices id from this.companies object
             let companies = this.companies.map((company) => {
                 return {
@@ -411,7 +387,7 @@ export default {
                     }),
                 };
             });
-            console.log("filtercompanies",companies);
+            console.log("filtercompanies", companies);
             await UserService.downloadPSCLZip(companies);
 
         },
