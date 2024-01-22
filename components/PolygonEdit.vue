@@ -57,7 +57,7 @@
 						<l-marker v-for="office in offices_layer" :key="office.id" :lat-lng="[office.lat, office.lon]"
 							:icon="companyIcon" :options="{ title: office.name }">
 							<l-popup ><strong>{{ office.company.name }}</strong><br><b-link
-									:to="`/offices/edit/${office.id}`"  :disabled="!(loggedUserIsMomaArea || loggedUserIsAdmin || loggedUserIsMomaManagerAziendale)">{{ office.name }}</b-link>
+									:to="`/offices/edit/${office.id}`"  :disabled="!(loggedUserIsMomaArea || loggedUserIsAdmin || loggedUserIsMomaAzienda)">{{ office.name }}</b-link>
 							</l-popup>
 						</l-marker>
 					</span>	

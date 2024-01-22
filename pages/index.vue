@@ -1,53 +1,47 @@
 <template>
   <div>
-    <b-form @onsubmit.prevent>
-      <b-form-row>
-        <b-col md="3">
-          <b-form-group label="Nome Area">
-            <b-form-input
-              v-model="filter.name_area"
-			  type="search"
-              placeholder="Scrivi alcune lettere"></b-form-input>
-          </b-form-group>
-        </b-col>
+    <b-form @submit.prevent="filterarea">
+    <b-form-row class="align-items-center flex-grow-1">
+      <b-col xl="" class="">
+        <b-row class="">
+          <b-col sm="6" class="">
+            <b-form-group label="Area" >
+              <b-form-input
+                v-model="filter.name_area"
+                type="search"
+                placeholder="Filtra usando il nome dell'area"
+              ></b-form-input>
+            </b-form-group>
+          </b-col>
+          <b-col sm="6">
+            <b-form-group label="Utenti" class=""> 
+              <b-form-input
+                v-model="filter.user_area"
+                type="search"
+                placeholder="Filtra per utenti di competenza"
+              ></b-form-input>
+            </b-form-group>
+          </b-col>
+        </b-row>
+      </b-col>
 
-        <b-col md="3">
-          <b-form-group label="User Area">
-            <b-form-input
-              v-model="filter.user_area"
-			  type="search"
-              placeholder="Scrivi alcune lettere"></b-form-input>
-          </b-form-group>
-        </b-col>
-        
-        <b-col md="1">
-          <b-form-group class="pt-4">
-            <b-button @click.prevent="filterarea()">Filtra</b-button>
-          </b-form-group>
-        </b-col>
-        <b-col md="2" v-if="isAuthorized('admin, moma_area')" class="pt-4">
-              <b-link
-                to="/momarea/export"
-                class="btn btn-sm btn-info"
-                title="Esporta dati in massa">
-                <i class="download" aria-hidden="true"></i>
-                Esporta dati in massa
-              </b-link>
-        </b-col>
-        
-        <b-col md="3" v-if="isAuthorized('admin')" class="pt-4">
-              <b-link
-                to="/momarea/add"
-                class="btn btn-sm float-right btn-success"
-                title="Aggiungi Area">
-                <i class="fa fa-plus" aria-hidden="true"></i>
-                Aggiungi Area
-              </b-link>
-        </b-col>
-        
-      </b-form-row>
-    </b-form>
-    <br>
+      <b-col lg="auto" class="d-md-flex align-items-center">
+        <b-button type="submit" variant="primary" class="btn  btn-info w-100 mb-2 mb-md-0 mr-md-2 align-middle py-1">Filtra</b-button>
+
+        <b-link to="/momarea/export" class="btn  btn-secondary w-100 mb-2 mb-md-0 mr-md-2 align-middle py-1" title="Esporta dati in massa">
+          <i class="download" aria-hidden="true"></i>
+          Vai&nbsp;a&nbsp;Esporta&nbsp;dati&nbsp;in&nbsp;massa
+        </b-link>
+
+        <b-link to="/momarea/add" class="btn  btn-success w-100 mb-2 mb-md-0 align-middle py-1" title="Aggiungi Area">
+          <i class="fa fa-plus d-inline align-middle mr-1" aria-hidden="true"></i>
+          <span class="d-inline align-middle">Aggiungi&nbsp;Area</span>
+        </b-link>
+
+      </b-col>
+    </b-form-row>
+  </b-form>
+<br>
     <b-table 
       striped
       hover
@@ -62,7 +56,7 @@
         {{ row.item.province }}
       </template>
       <template #cell(polygon)="row">
-        <img v-if= "row.item.polygon!=null" width="20" height="20" src="https://img.icons8.com/external-others-inmotus-design/67/external-Polygon-basic-elements-others-inmotus-design.png" alt="external-Polygon-basic-elements-others-inmotus-design"/>
+        <img v-if= "row.item.polygon!=null" width="25" height="25" src="https://img.icons8.com/color/48/ok--v1.png" alt="external-Polygon-basic-elements-others-inmotus-design"/>
       </template>
       <template #cell(users)="row">
         {{ row.item.users.length>0 ? row.item.users[0].email: "" }}
@@ -100,12 +94,12 @@ export default {
     return {
       areas: [], // Replace with your actual data
       fields: [
-        { key: "name", label: "Name" },
-        { key: "city", label: "City" },
-        { key: "province", label: "Province" },
-        { key: "polygon", label: "Polygon" },
-        { key: "users", label: "Users" },
-        { key: "actions", label: "Actions" }
+        { key: "name", label: "Nome" },
+        { key: "city", label: "Città" },
+        { key: "province", label: "Provincia" },
+        { key: "polygon", label: "Perimetro" },
+        { key: "users", label: "Utenti" },
+        { key: "actions", label: "Azioni" }
       ],
       filter: {
 				name_area: null, 
@@ -136,3 +130,4 @@ button {
     margin-right: 4px;
 }
 </style>
+  

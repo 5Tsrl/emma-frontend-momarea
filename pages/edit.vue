@@ -117,7 +117,7 @@ export default {
 	},
 	methods: {
 		async onSubmit() {
-			alert(JSON.stringify(this.area))
+			//alert(JSON.stringify(this.area))
 			let res = await AreaService.editArea(this.id,this.area);
 			// sent to mommaarea after save
 			this.$router.push({ path: "/momarea" });
