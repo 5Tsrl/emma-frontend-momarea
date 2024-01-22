@@ -1,47 +1,81 @@
 <template>
-    <div>
-		<b-form-group id="input-group-2" label="Nome area:" label-for="input-2">
-			<b-form-input
-			id="input-2"
-			v-model="area.name"
-			placeholder="Inserisci nome area"
-			required
-			></b-form-input>
-		</b-form-group>
+	<div>
+		<b-form>
+			<b-form-row class="align-items-center">
+				<b-col xl="12">
+					<b-row class="">
+						<b-col sm="6" class="">
+							<b-form-group label="Area" >
+								<b-form-input
+								id="input-2"
+								v-model="area.name"
+								placeholder="Inserisci il nome dell'area"
+								required
+								></b-form-input>
+							</b-form-group>
+						</b-col>
+						<b-col sm="6">
+							<b-form-group label="Utenti" class=""> 
+								<b-form-select
+								id="input-2"
+								v-model="selectedUsers"
+								:options="users"
+								placeholder=""
+								required
+								multiple
+								></b-form-select>
+							</b-form-group>
+						</b-col>
+					</b-row>
+				</b-col>
+			</b-form-row>
+		</b-form>
 
-		<b-form-group id="input-group-2" label="User:" label-for="input-2">
-			<b-form-select
-			id="input-2"
-			v-model="selectedUsers"
-			:options="users"
-			placeholder=""
-			required
-			multiple
-			></b-form-select>
-		</b-form-group>
-		<h5>Seleziona l´area</h5>
+		<h5>Seleziona il tipo di area</h5>
+
 		<b-form-group>
-			<b-row>
-				<b-col md="4">
-					<b-form-radio v-model="selectedArea" name="selectedarea" value="province">
+			<b-row class="align-items-center no-gutters">
+				<b-col md="auto" class="mr-1 mb-2">
+					<b-button 
+					@click="changeArea('province')"
+					name="selectedarea" value="province"
+					class="btn  btn-outline-primary btn-block"
+					:class="{ 'active': selectedArea === 'province' }">
 						Provincia
-					</b-form-radio>
+					</b-button>
 				</b-col>
-				<b-col md="4">
-					<b-form-radio v-model="selectedArea" name="selectedarea" value="city">
+				<b-col md="auto" class="mr-1 mb-2">
+					<b-button
+					@click="changeArea('city')"
+					name="selectedarea" value="city"
+					class="btn  btn-outline-primary btn-block"
+					:class="{ 'active': selectedArea === 'city' }">
 						Città
-					</b-form-radio>
+					</b-button>
 				</b-col>
-				<b-col md="4">
-					<b-form-radio v-model="selectedArea" name="selectedarea" value="polygon">
-						Poligon
-					</b-form-radio>
+				<b-col md="auto" class="mr-1 mb-2">
+					<b-button
+					@click="changeArea('polygon')"
+					name="selectedarea"
+					value="polygon"
+					class="btn  btn-outline-primary btn-block"
+					:class="{ 'active': selectedArea === 'polygon' }">
+						Perimetro
+					</b-button>
 				</b-col>
-			</b-row>
+
+				<b-col md="" class="flex-grow-1 mb-2" ></b-col>
+
+				<b-button md="auto" variant="primary" @click="onSubmit()" 
+				class="ml-1 btn btn-success mb-1">Salva l'area</b-button>
+			</b-row>	
 		</b-form-group>
+		<div v-if="selectedArea === 'polygon'" class="d-flex justify-content-begin align-items-center mb-2">
+			<img width="20" height="20" src="https://img.icons8.com/pastel-glyph/64/000000/info--v1.png" alt="info">
+			<p class="mb-0 ml-2">Usa il tasto crea forma per tracciare il perimetro dell'area</p>
+		</div>
+		
 		<polygon-edit :area="area" :selectedArea="selectedArea" ></polygon-edit>
-		<br>
-		<b-button variant="primary" @click="onSubmit()" class="mb-3">Salva</b-button>
 	</div>
 </template>
 
@@ -117,11 +151,12 @@ export default {
         event.preventDefault()
         this.area.name = ''
 		},
+		changeArea(value){
+			this.selectedArea=value;
+			console.log("select",this.selectedArea);
+		},
 	},
-}
-
-
-		
+}	
 </script>
 
 <style scoped>

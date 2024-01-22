@@ -48,7 +48,8 @@
             </template>
             <!-- {{ row.item.offices.length>0 ? "" : "" }}
                 <b-tr v-for="row.item.offices.map(office => office.name) ">{{}}</b-tr> -->
-        
+        </template>
+        <template #cell(pscl)="row">
             <template v-for="office in row.item.offices" v-if="row.item.name!=='Totale'">
                 <b-tr>
                     <b-icon @click="DownloadPscl(row.item.id,office.id,row.item.name)" :icon="iconDownload(office.pscl)" :title="`PSCL ${office.name}`" v-bind:style="{ color: iconColor(office.pscl) }">
@@ -158,6 +159,10 @@ export default {
                     sortable: true
                 },
                 {
+                    key: 'pscl',
+                    label: 'PSCL',
+                },
+                {
                     key: 'survey',
                     label: 'Questionari',
                     sortable: true
@@ -189,7 +194,12 @@ export default {
         this.companies = r.data.companies;
         let res = await UserService.getCompanyTypes();
         this.company_types = res.data.company_types;
-
+        this.company_types.unshift(
+			{
+					id: null,
+					name: "Tutte",
+				});
+        this.filter.type=this.company_types[0].id;
         // add last row with sum of employees and offices
         this.companies.push({
             id: 0,
@@ -308,6 +318,21 @@ export default {
                 this.filter.name
             ).then((res) => {
                 this.companies = res.data.companies;
+            });
+             // add last row with sum of employees and offices
+            this.companies.push({
+                id: 0,
+                name: "Totale",
+                moma_name: "",
+                offices: [],
+                // sum all employees
+                num_employees: this.companies.reduce((total, company) => {
+                    return total + company.offices.reduce((total, office) => total + (office.num_employees != null ? office.num_employees : 0), 0);
+                }, 0),
+                // sum all offices
+                offices_num: this.companies.reduce((acc, company) => {
+                    return acc + company.offices.length;
+                }, 0),
             });
             localStorage.setItem("filter_company_name", this.filter.name);
             localStorage.setItem("filter_company_type", this.filter.type);
