@@ -69,9 +69,15 @@
             </template>
         </template>
         <template #cell(surveyresults)="row">
-            <template v-for="survey in row.item.surveys">
+            <template v-for="survey in row.item.surveys" v-if="row.item.name!=='Totale'">
                 <b-tr v-if="survey!==null">
                     <b-icon @click="exportSurveyData(survey.id,survey.name)" icon="download" :title="`Risultati Questionario ${survey.name}`">
+                    </b-icon>
+                </b-tr>
+            </template>
+            <template v-if="row.item.name=='Totale'">
+                <b-tr>
+                    <b-icon @click="AllExportSurveyData('Tutti')" icon="download" title="Risultati Questionario tutti i Questionari">
                     </b-icon>
                 </b-tr>
             </template>
@@ -405,17 +411,71 @@ export default {
         async ZipPscl() {
             // take only companies id and offices id from this.companies object
             let companies = this.companies.map((company) => {
-                return {
-                    id: company.id,
-                    offices: company.offices.map((office) => {
-                        return office.id;
-                    }),
-                };
+                if(company.name!=="Totale"){
+                    return {
+                            id: company.id,
+                            offices: company.offices.map((office) => {
+                                return office.id;
+                            }),
+                    };
+                }
             });
             console.log("filtercompanies", companies);
             await UserService.downloadPSCLZip(companies);
 
         },
+        // export all survey answers using an array of survey ids obtained from the companies object
+        async AllExportSurveyData(survey_name) {
+            
+            try {
+                this.busy = true;
+                let surveys = [];
+                // this.companies.map((company) => {
+                //     console.log("company",company);
+                //     if(company.name!=="Totale"){
+                //     return {
+                //         surveys: company.surveys.map((survey) => {
+                //             return survey.id;
+                //         }),
+                //     };
+                // }
+                // });
+                this.companies.forEach((company) => {
+                    if(company.name!=="Totale"){
+                        company.surveys.forEach((survey) => {
+                            if (survey !== null) {
+                                surveys.push(survey.id);
+                            }
+                        });
+                    }
+                });
+                console.log("surveys",surveys);
+                const res = await UserService.exportSurveyData(surveys);
+                let ext = mime.extension(res.data.type);
+                console.log(res);
+                if (ext === "json") {
+                    this.$bvToast.toast("Error in questionnaire export", {
+                        title: "No Uploads",
+                        variant: "warning",
+                        autoHideDelay: 2000,
+                        appendToast: true,
+                    });
+                    this.busy = false;
+                    return;
+                }
+                const url = window.URL.createObjectURL(new Blob([res.data]));
+                const link = document.createElement("a");
+                link.href = url;
+                link.setAttribute("download", `${survey_name}.${ext}`);
+                document.body.appendChild(link);
+                link.click();
+            } catch (error) {
+                console.log(error);
+            } finally {
+                this.busy = false;
+            }
+        },
+
     },
 };
 </script>
