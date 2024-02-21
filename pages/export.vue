@@ -77,7 +77,7 @@
             </template>
             <template v-if="row.item.name=='Totale'">
                 <b-tr>
-                    <b-icon @click="AllExportSurveyData('Tutti')" icon="download" title="Risultati Questionario tutti i Questionari">
+                    <b-icon @click="Export()" icon="download" title="Risultati Questionario tutti i Questionari">
                     </b-icon>
                 </b-tr>
             </template>
@@ -100,6 +100,60 @@
             </div>
         </template>
     </b-table>
+<template>
+  <div>
+    <!-- Modal for selecting export options -->
+    <b-modal v-model="showModalExport" title="Opzioni di Esportazione" hide-footer>
+      <!-- Buttons Export all or select surveys and questions -->
+      <b-row>
+        <b-col ><b-button @click="AllExportSurveyData('Tutti')" variant="primary">Esporta tutti</b-button> </b-col>
+        <b-col ><b-button @click="showModalForExport()" variant="primary">Esporta selezione</b-button></b-col>
+      </b-row>
+        
+    </b-modal>
+  </div>
+</template>
+
+<template>
+  <div>
+
+    <!-- Modal for selecting surveys and questions -->
+    <b-modal v-model="showModalSurveys" title="Esporta i resultati" hide-footer>
+      <!-- Survey selection -->
+    <label for="surveySelect">Scegli i questionari che vuoi esportare:</label>
+      <b-form-select id="surveySelect" v-model="selectedSurvey" multiple>
+        <option v-for="survey in surveys" :value="survey.id">{{ survey.name }}</option>
+      </b-form-select>
+
+      <!-- next button open modalquestions and close showModalSurveys -->
+        <b-button @click="showModalForQuestions()" variant="primary">Seguente</b-button>
+    </b-modal>
+  </div>
+</template>
+<template>
+  <div>
+
+    <!-- Modal for selecting surveys and questions -->
+    <b-modal v-model="showModalQuestions" title="Esporta i resultati" hide-footer>
+        <!-- busy until get questions -->
+        <b-spinner v-if="questions.length===0" label="Loading..."></b-spinner>
+
+      <!-- Question selection -->
+      <div v-if="questions.length!=0">
+        <label for="questionSelect">Scegli le domande che desideri esportare nei risultati:</label>
+        <b-form-select id="questionSelect" v-model="selectedQuestions" multiple>
+            <option v-for="question in questions" :value="question.id">{{ question.text }}</option>
+        </b-form-select>
+
+      <!-- Export button -->
+      <b-button @click="AllExportSurveyData('Tutti',0)" variant="primary">Esporta</b-button>
+    </div>
+     
+    </b-modal>
+  </div>
+</template>
+
+    
 </div>
 </template>
 
@@ -192,6 +246,13 @@ export default {
             busy: false,
             busyXlsx: false,
             tablevalues: [],
+            showModalExport: false,
+            showModalSurveys: false,
+            showModalQuestions: false,
+            selectedSurvey: null,
+            selectedQuestions: [],
+            surveys: [], // Add your survey data here
+            questions: [], // Add your question data here
         };
     },
     async created() {
@@ -425,36 +486,47 @@ export default {
 
         },
         // export all survey answers using an array of survey ids obtained from the companies object
-        async AllExportSurveyData(survey_name) {
+        async AllExportSurveyData(survey_name, all = true) {
+            
             
             try {
                 this.busy = true;
-                let surveys = [];
-                // this.companies.map((company) => {
-                //     console.log("company",company);
-                //     if(company.name!=="Totale"){
-                //     return {
-                //         surveys: company.surveys.map((survey) => {
-                //             return survey.id;
-                //         }),
-                //     };
-                // }
-                // });
-                this.companies.forEach((company) => {
-                    if(company.name!=="Totale"){
-                        company.surveys.forEach((survey) => {
-                            if (survey !== null) {
-                                surveys.push(survey.id);
-                            }
+                
+                let res;
+                let exportData={surveys:this.selectedSurvey,questions:this.selectedQuestions};
+                if (all) {
+                    this.showModalExport = false;
+                    this.selectedSurvey = this.surveys.map((survey) => survey.id);
+                    res = await UserService.exportSurveyData(null,all,exportData);
+                    
+                }else{
+                    
+                    // alert if not questions are selected
+                    if (this.selectedQuestions.length === 0) {
+                        this.$bvToast.toast("Seleziona almeno una domanda", {
+                            title: "Errore",
+                            variant: "danger",
+                            autoHideDelay: 2000,
+                            appendToast: true,
+                        });
+                        return;
+                    }else{
+                        // alert the export is in progress
+                        this.$bvToast.toast("Esportazione in corso", {
+                            title: "Esportazione",
+                            variant: "info",
+                            autoHideDelay: 2000,
+                            appendToast: true,
                         });
                     }
-                });
-                console.log("surveys",surveys);
-                const res = await UserService.exportSurveyData(surveys);
+                    this.showModalQuestions = false;
+                    res = await UserService.exportSurveyData(null,all,exportData);
+                }
+                
                 let ext = mime.extension(res.data.type);
-                console.log(res);
+                
                 if (ext === "json") {
-                    this.$bvToast.toast("Error in questionnaire export", {
+                    this.$bvToast.toast("Error in survey export", {
                         title: "No Uploads",
                         variant: "warning",
                         autoHideDelay: 2000,
@@ -471,9 +543,60 @@ export default {
                 link.click();
             } catch (error) {
                 console.log(error);
+                // alert error in export
+                this.$bvToast.toast("Errore in esportazione", {
+                    title: "Errore",
+                    variant: "danger",
+                    autoHideDelay: 2000,
+                    appendToast: true,
+                });
             } finally {
                 this.busy = false;
             }
+        },
+        // show modal for selecting survey and questions
+        Export() {
+            this.showModalExport = true;
+            this.surveys=[];
+            this.companies.forEach((company) => {
+                    if(company.name!=="Totale"){
+                        company.surveys.forEach((survey) => {
+                            if (survey !== null) {
+                                this.surveys.push({ id: survey.id, name: survey.name });
+                            }
+                        });
+                    }
+                });
+            // select the first survey
+            this.selectedSurvey = this.surveys.map((survey) => survey.id);
+        },
+        showModalForExport() {
+            this.showModalExport = false;
+            this.showModalSurveys = true;
+           
+        },
+        async showModalForQuestions() {
+            // alert if no survey is selected
+            if (this.selectedSurvey === null) {
+                this.$bvToast.toast("Seleziona almeno un questionario", {
+                    title: "Errore",
+                    variant: "danger",
+                    autoHideDelay: 2000,
+                    appendToast: true,
+                });
+                return;
+            }
+            this.showModalSurveys = false;
+            this.showModalQuestions = true;
+            const res = await AreaService.getExportQuestions(null,this.selectedSurvey);
+            console.log("res", res);
+            // get questions from res.data.questions and add them to this.questions where res.data.questions is an array of questions objects with id and name
+            this.questions = res.data.questions.map((question) => {
+                return { id: question.question.id, text: `${question.question.id} - ${question.question.description}` };
+            });
+            // this.selectedSurvey.forEach((survey) => {
+            //     this.questions.push({ id: survey, text: "Tutte le domande" });
+            // });
         },
 
     },

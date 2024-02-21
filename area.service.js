@@ -57,6 +57,15 @@ class AreaService {
 		}
 		return httpClient.get("/companies/ExportList.json?" + params.toString());
 	}
+	// post questions for export
+	async getExportQuestions(survey_id,export_data) {
+		return httpClient({
+			method: "post",
+			url: `/answers/getExportQuestions.json`,
+			data: export_data,
+
+		});
+	}
 
 }
 

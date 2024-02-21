@@ -115,10 +115,10 @@
 	data() {
 	  return {
 		area: {
-		  provincia: null,
+		  province: null,
 		  city: null,
 		  polygon: null,
-		  users: null,
+		  users: [{id: null}],
 		},
 		users: null,
 		id: null,
@@ -160,21 +160,13 @@
 			}
 		}
 		}
+		,
+			set(value) {
+				console.log("value",value);
+				this.area.users = {_ids:value};
+				console.log("area",this.area);
+			}
 	},
-	methods: {
-		async onSubmit() {
-			//alert(JSON.stringify(this.area))
-			let res = await AreaService.editArea(this.id,this.area);
-			// sent to mommaarea after save
-			this.$router.push({ path: "/momarea" });
-		},
-		set(value) {
-		  // Imposta gli utenti selezionati
-		  console.log("value", value);
-		  this.area.users = { _ids: value };
-		  console.log("area", this.area);
-		},
-	  },
 	},
 	methods: {
 	  // Metodo per gestire la sottomissione del form
