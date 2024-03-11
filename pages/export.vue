@@ -253,6 +253,7 @@ export default {
             selectedQuestions: [],
             surveys: [], // Add your survey data here
             questions: [], // Add your question data here
+            statsIntervalId: null,
         };
     },
     async created() {
@@ -331,25 +332,44 @@ export default {
         async exportSurveyData(survey_id, survey_name) {
             try {
                 this.busy = true;
-                const res = await UserService.exportSurveyData(survey_id);
-                let ext = mime.extension(res.data.type);
-                console.log(res);
-                if (ext === "json") {
-                    this.$bvToast.toast("Error in questionnaire export", {
-                        title: "No Uploads",
-                        variant: "warning",
-                        autoHideDelay: 2000,
-                        appendToast: true,
-                    });
-                    this.busy = false;
-                    return;
-                }
-                const url = window.URL.createObjectURL(new Blob([res.data]));
-                const link = document.createElement("a");
-                link.href = url;
-                link.setAttribute("download", `${survey_name}.${ext}`);
-                document.body.appendChild(link);
-                link.click();
+                this.$bvToast.toast("Esportazione in corso", {
+                    title: "Esportazione",
+                    variant: "info",
+                    autoHideDelay: 2000,
+                    appendToast: true,
+                });
+                let res = await UserService.exportSurveyData(survey_id);
+                this.$bvToast.toast(res.data.message, {
+						title: "No Uploads",
+						variant: "warning",
+						autoHideDelay: 2000,
+						appendToast: true,
+					});
+				this.statsIntervalId = setInterval(async () => {
+					try {
+						this.getStatusExport(survey_id, survey_name);
+					} catch (e) {                
+						console.log(e);
+					}
+				}, 10000);
+                // let ext = mime.extension(res.data.type);
+                // console.log(res);
+                // // if (ext === "json") {
+                // //     this.$bvToast.toast("Error in questionnaire export", {
+                // //         title: "No Uploads",
+                // //         variant: "warning",
+                // //         autoHideDelay: 2000,
+                // //         appendToast: true,
+                // //     });
+                // //     this.busy = false;
+                // //     return;
+                // // }
+                // // const url = window.URL.createObjectURL(new Blob([res.data]));
+                // // const link = document.createElement("a");
+                // // link.href = url;
+                // // link.setAttribute("download", `${survey_name}.${ext}`);
+                // // document.body.appendChild(link);
+                // // link.click();
             } catch (error) {
                 console.log(error);
             } finally {
@@ -522,25 +542,38 @@ export default {
                     this.showModalQuestions = false;
                     res = await UserService.exportSurveyData(null,all,exportData);
                 }
+                this.$bvToast.toast(res.data.message, {
+						title: "No Uploads",
+						variant: "warning",
+						autoHideDelay: 2000,
+						appendToast: true,
+					});
+				this.statsIntervalId = setInterval(async () => {
+					try {
+						this.getStatusExport(null, survey_name);
+					} catch (e) {                
+						console.log(e);
+					}
+				}, 10000);
                 
-                let ext = mime.extension(res.data.type);
+                // let ext = mime.extension(res.data.type);
                 
-                if (ext === "json") {
-                    this.$bvToast.toast("Error in survey export", {
-                        title: "No Uploads",
-                        variant: "warning",
-                        autoHideDelay: 2000,
-                        appendToast: true,
-                    });
-                    this.busy = false;
-                    return;
-                }
-                const url = window.URL.createObjectURL(new Blob([res.data]));
-                const link = document.createElement("a");
-                link.href = url;
-                link.setAttribute("download", `${survey_name}.${ext}`);
-                document.body.appendChild(link);
-                link.click();
+                // if (ext === "json") {
+                //     this.$bvToast.toast("Error in survey export", {
+                //         title: "No Uploads",
+                //         variant: "warning",
+                //         autoHideDelay: 2000,
+                //         appendToast: true,
+                //     });
+                //     this.busy = false;
+                //     return;
+                // }
+                // const url = window.URL.createObjectURL(new Blob([res.data]));
+                // const link = document.createElement("a");
+                // link.href = url;
+                // link.setAttribute("download", `${survey_name}.${ext}`);
+                // document.body.appendChild(link);
+                // link.click();
             } catch (error) {
                 console.log(error);
                 // alert error in export
@@ -597,6 +630,59 @@ export default {
             // this.selectedSurvey.forEach((survey) => {
             //     this.questions.push({ id: survey, text: "Tutte le domande" });
             // });
+        },
+        async getStatusExport(survey_id, survey_name) {
+            try {
+                let res = await UserService.getStatusExport(survey_id);
+                if (res.data == null){
+                    this.lock = [false, false, false, false, false];
+                    this.message = "Scegli un'operazione";
+                    return;
+                }
+				console.log("res from getStatusExport",res);
+                let ext = mime.extension(res.data.type);
+				console.log("ext",ext);
+				if(ext === "json")
+				{
+					let message = res.data.message;
+					let lock = res.data.lock;
+					this.$bvToast.toast("In lavorazione", {
+							title: "No Uploads",
+							variant: "warning",
+							autoHideDelay: 2000,
+							appendToast: true,
+						});
+						this.busy = false;
+						return;
+					
+				}else{		
+					
+					// alert of the download
+					this.$bvToast.toast("Esportazione completata", {
+						title: "Esportazione",
+						variant: "success",
+						autoHideDelay: 2000,
+						appendToast: true,
+					});
+					const url = window.URL.createObjectURL(new Blob([res.data]));
+					const link = document.createElement("a");
+					link.href = url;
+					link.setAttribute("download", `${survey_name}.${ext}`);
+					document.body.appendChild(link);
+					link.click();
+					if (this.statsIntervalId) {
+						clearInterval(this.statsIntervalId);
+					}
+				}
+
+            } catch (error) {
+				this.$bvToast.toast(error.message, {
+						title: "No Uploads",
+						variant: "warning",
+						autoHideDelay: 2000,
+						appendToast: true,
+					});
+            }
         },
 
     },
