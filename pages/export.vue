@@ -428,7 +428,7 @@ export default {
             try {
                 // Get table rows
                 const rows = this.$refs.table.$el.querySelectorAll('tr');
-
+                console.log("rows",rows);
                 // Define columns to omit
                 const omitColumns = ['PSCL', 'Risultati Questionario', 'Foglio Impatti'];
 
@@ -455,6 +455,11 @@ export default {
                     .filter(label => !omitColumns.includes(label));
                 data.unshift(headers);
                 console.log(data);
+                // cleand array from null values
+                let dataclean = data.filter((el) => {
+                    return el != null;
+                });
+                console.log("clean",dataclean);
                 // Create a workbook
                 let wb = XLSX.utils.book_new();
                 wb.Props = {
@@ -465,7 +470,7 @@ export default {
                 };
                 wb.SheetNames.push("moma area table");
                 // Convert data to worksheet
-                const ws = XLSX.utils.json_to_sheet(data);
+                const ws = XLSX.utils.json_to_sheet(dataclean);
                 wb.Sheets["moma area table"] = ws;
                 XLSX.writeFile(wb, "indicatore.xlsx");
             } catch (err) {
