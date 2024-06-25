@@ -35,6 +35,14 @@ const routes = [
 				// lazy-loaded
 				component: pageComponent("export"),
 			},
+			// Add your new route here
+			{
+				path: "/momarea/psclist",
+				name: "Pscl dagli Spazi di Moma Area",
+				meta: { authorize: ["admin","moma_area"] },
+				// lazy-loaded
+				component: pageComponent("psclist"),
+			},
 		]
 	}
 ];

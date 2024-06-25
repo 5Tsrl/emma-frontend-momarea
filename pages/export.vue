@@ -16,10 +16,25 @@
                 <i class="fa fa-file-excel-o" aria-hidden="true"></i>
                 Esporta</b-button>
         </b-col>
+        <b-col>
+            <b-label>PSCL</b-label>
+            <b-form-select v-model="pscl" :options="pscl_options" value-field="id" text-field="name"></b-form-select>
+        </b-col>
     </b-row>
+    <hr />
+    <!-- Dynamically render checkboxes for each field -->
+    <b-form-group label="Colonne attive" label-cols-lg="2" v-slot="{ ariaDescribedby }">
+        <div class="checkbox-inline-container">
+        <div v-for="(field, index) in fields" :key="index">
+        <b-form-checkbox v-model="checkboxStates[field.key]" :aria-describedby="ariaDescribedby" inline>
+            {{ field.label }}
+        </b-form-checkbox>
+        </div>
+        </div>
+    </b-form-group>
 
     <hr />
-    <b-table ref="table" striped hover :items="companies" :fields="fields" :busy="loading" :v-model="tablevalues">
+    <b-table ref="table" striped hover :items="selectedCompanies" :fields="selectedFields" :busy="loading" :v-model="tablevalues">
         <template #cell(name)="row">
             {{ row.item.name }}
         </template>
@@ -52,7 +67,7 @@
         <template #cell(pscl)="row">
             <template v-for="office in row.item.offices" v-if="row.item.name!=='Totale'">
                 <b-tr>
-                    <b-icon @click="DownloadPscl(row.item.id,office.id,row.item.name)" :icon="iconDownload(office.pscl)" :title="`PSCL ${office.name}`" v-bind:style="{ color: iconColor(office.pscl) }">
+                    <b-icon @click="DownloadPscl(row.item.id,office.id,row.item.name,office.pscl[office.pscl.length - 1])" :icon="iconDownload(office.pscl)" :title="`PSCL ${office.name}`" v-bind:style="{ color: iconColor(office.pscl) }">
                     </b-icon>
                 </b-tr>
             </template>
@@ -61,6 +76,11 @@
                     <b-icon @click="ZipPscl()" icon="download" title="PSCL Zip">
                     </b-icon>
                 </b-tr>
+            </template>
+        </template>
+        <template #cell(psclName)="row">
+            <template v-for="office in row.item.offices" v-if="row.item.name!=='Totale'">
+                <b-tr v-if="office!==null">{{ office.pscl[office.pscl.length - 1] }}</b-tr>
             </template>
         </template>
         <template #cell(survey)="row">
@@ -157,6 +177,7 @@
 </div>
 </template>
 
+
 <script>
 import UserService from "@/services/user.service";
 import AreaService from "../area.service";
@@ -190,7 +211,9 @@ export default {
                 {
                     key: 'name',
                     label: 'Name',
-                    sortable: true
+                    sortable: true,
+                    hide: true
+
                 },
                 //add moma Area name and moma Area email
                 {
@@ -221,6 +244,11 @@ export default {
                 {
                     key: 'pscl',
                     label: 'PSCL',
+                },
+                {
+                    key: 'psclName',
+                    label: 'Nome PSCL',
+                    sortable: true
                 },
                 {
                     key: 'survey',
@@ -254,7 +282,24 @@ export default {
             surveys: [], // Add your survey data here
             questions: [], // Add your question data here
             statsIntervalId: null,
-        };
+            checkboxStates: {},
+            // selectedCompanies: [],
+            pscl_options: [{
+                    id: 1,
+                    name: 'No pscl'
+                },
+                {
+                    id: 2,
+                    name: 'Si pscl'
+                },
+                {
+                    id: 3,
+                    name: 'Tutti'
+                },
+                // Add more pscl here
+            ],
+            pscl: 3,    
+            };
     },
     async created() {
         this.loading = true;
@@ -283,17 +328,46 @@ export default {
                 return acc + company.offices.length;
             }, 0),
         });
-
+        // this.selectedCompanies=this.companies;
+        // Initialize checkboxStates based on fields
+        this.fields.forEach(field => {
+        this.$set(this.checkboxStates, field.key, true);
+        });
         this.loading = false;            
+    },
+    computed: {
+        selectedFields() {
+        // Filter fields based on checkbox states 
+        return this.fields.filter(field => this.checkboxStates[field.key]);
+        
+        },
+        selectedCompanies() {
+            console.log("companiesWithEmptyPscl:" ,this.pscl);
+            if(this.pscl==1){
+                return this.companies.filter(company =>
+                    // Check if company.offices is an array before calling .every()
+                    Array.isArray(company.offices) && company.offices.length != 0 && company.offices.every(office => office.pscl.length == 0)
+                );
+            }else if(this.pscl==2){
+                return this.companies.filter(company =>
+                    // Check if company.offices is an array before calling .every()
+                    Array.isArray(company.offices) && company.offices.length != 0 && company.offices.every(office => office.pscl.length >0)
+                );
+                
+            }else if(this.pscl==3){
+                return this.companies;
+            }
+            
+        },
     },
     methods: {
         sleep(milliseconds) {
             return new Promise((resolve) => setTimeout(resolve, milliseconds));
         },
-        async DownloadPscl(company_id, office_id, companyName) {
-            let files = (await UserService.listPSCL(company_id, office_id)).data.files;
-            if (files.length > 0) {
-                let fname = files[files.length - 1];
+        async DownloadPscl(company_id, office_id, companyName, fname=null) {
+            // let files = (await UserService.listPSCL(company_id, office_id)).data.files;
+            if (fname!=null) {
+                // let fname = files[files.length - 1];
                 console.log(fname);
                 try {
                     this.busy = true;
@@ -421,6 +495,7 @@ export default {
                     return acc + company.offices.length;
                 }, 0),
             });
+            // this.selectedCompanies=this.companies;
             localStorage.setItem("filter_company_name", this.filter.name);
             localStorage.setItem("filter_company_type", this.filter.type);
         },
@@ -689,7 +764,15 @@ export default {
 					});
             }
         },
+        
 
     },
 };
 </script>
+<style>
+/* This CSS ensures that all checkboxes will be displayed inline */
+.checkbox-inline-container > div {
+  display: inline-block;
+  margin-right: 10px; /* Adjust spacing between checkboxes as needed */
+}
+</style>
