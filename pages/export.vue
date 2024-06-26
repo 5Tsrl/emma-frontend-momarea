@@ -494,6 +494,14 @@ export default {
                     id: 3,
                     name: 'Tutti'
                 },
+                {
+                    id: 4,
+                    name: 'Pscl 2024'
+                },
+                {
+                    id: 5,
+                    name: 'No Pscl 2024'
+                },
                 // Add more pscl here
             ],
             pscl: 3, 
@@ -565,11 +573,21 @@ export default {
             }else if(this.pscl==2){
                 return this.companies.filter(company =>
                     // Check if company.offices is an array before calling .every()
-                    Array.isArray(company.offices) && company.offices.length != 0 && company.offices.every(office => office.pscl.length >0)
+                    Array.isArray(company.offices) && company.offices.length != 0 && company.offices.some(office => office.pscl.length >0)
                 );
                 
             }else if(this.pscl==3){
                 return this.companies;
+            }else if(this.pscl==4){
+                return this.companies.filter(company =>
+                    // Check if company.offices is an array before calling .every()
+                    Array.isArray(company.offices) && company.offices.length != 0 && company.offices.some(office => office.pscl.length >0 && office.pscl[office.pscl.length - 1].includes("2024"))
+                );
+            }else if(this.pscl==5){
+                return this.companies.filter(company =>
+                    // Check if company.offices is an array before calling .every()
+                    Array.isArray(company.offices) && company.offices.length != 0 && company.offices.every(office => office.pscl.length >0 && !office.pscl[office.pscl.length - 1].includes("2024"))
+                );
             }
         },
         sortOptions() {
