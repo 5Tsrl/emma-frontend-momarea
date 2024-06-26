@@ -1,6 +1,6 @@
 <template>
 <div>
-    <b-row>
+    <!-- <b-row>
         <b-col>
             <b-form-input v-model="filter.name" placeholder="cerca per nome azienda" type="search" v-on:keyup.enter="updateFilter()"></b-form-input>
         </b-col>
@@ -17,8 +17,187 @@
                 Esporta</b-button>
         </b-col>
         <b-col>
-            <b-label>PSCL</b-label>
-            <b-form-select v-model="pscl" :options="pscl_options" value-field="id" text-field="name"></b-form-select>
+            
+        </b-col>
+    </b-row> -->
+    <b-row>
+        <b-col lg="6" class="my-1">
+            <b-form-group
+                label="Tipo di azienda"
+                label-for="type-of-company"
+                label-cols-sm="3"
+                label-align-sm="right"
+                label-size="sm"
+                class="mb-0"
+                v-slot="{ ariaDescribedby }"
+                >
+                <b-input-group size="sm">
+                    <b-form-select v-model="filter.type" :options="company_types" value-field="id" text-field="name"></b-form-select>
+                    <b-input-group-append>
+                        <b-button @click="updateFilter()" variant="default"><i class="fa fa-search" aria-hidden="true"></i>
+                            filtra
+                        </b-button>
+                    </b-input-group-append>
+                </b-input-group>
+            </b-form-group>
+        </b-col>
+            
+        <b-col lg="6" class="my-1">
+            <b-form-group
+                label="Filtra per PSCL"
+                label-for="pscl"
+                label-cols-sm="3"
+                label-align-sm="right"
+                label-size="sm"
+                class="mb-0"
+                v-slot="{ ariaDescribedby }"
+                >
+                    <b-form-select v-model="pscl" :options="pscl_options" value-field="id" text-field="name"></b-form-select>
+            </b-form-group>
+        </b-col>
+      <b-col lg="6" class="my-1">
+            <b-form-group
+            label="Ordina"
+            label-for="sort-by-select"
+            label-cols-sm="3"
+            label-align-sm="right"
+            label-size="sm"
+            class="mb-0"
+            v-slot="{ ariaDescribedby }"
+            >
+            <b-input-group size="sm">
+                <b-form-select
+                id="sort-by-select"
+                v-model="sortBy"
+                :options="sortOptions"
+                :aria-describedby="ariaDescribedby"
+                class="w-75"
+                >
+                <template #first>
+                    <option value="">-- nessuno --</option>
+                </template>
+                </b-form-select>
+
+                <b-form-select
+                v-model="sortDesc"
+                :disabled="!sortBy"
+                :aria-describedby="ariaDescribedby"
+                size="sm"
+                class="w-25"
+                >
+                <option :value="false">Crescente</option>
+                <option :value="true">Decrescente</option>
+                </b-form-select>
+            </b-input-group>
+            </b-form-group>
+      </b-col>
+
+      <b-col lg="6" class="my-1">
+        <b-form-group
+          label="Ordinamento iniziale"
+          label-for="initial-sort-select"
+          label-cols-sm="3"
+          label-align-sm="right"
+          label-size="sm"
+          class="mb-0"
+        >
+          <b-form-select
+            id="initial-sort-select"
+            v-model="sortDirection"
+            :options="['asc', 'desc', 'last']"
+            size="sm"
+          ></b-form-select>
+        </b-form-group>
+      </b-col>
+
+      <b-col lg="6" class="my-1">
+        <b-form-group
+          label="Filtro"
+          label-for="filter-input"
+          label-cols-sm="3"
+          label-align-sm="right"
+          label-size="sm"
+          class="mb-0"
+        >
+          <b-input-group size="sm">
+            <b-form-input
+              id="filter-input"
+              v-model="filterTable"
+              type="search"
+              placeholder="Digita per cercare"
+            ></b-form-input>
+
+            <b-input-group-append>
+              <b-button :disabled="!filterTable" @click="filterTable = ''">Cancella</b-button>
+            </b-input-group-append>
+          </b-input-group>
+        </b-form-group>
+      </b-col>
+
+      <b-col lg="6" class="my-1">
+        <b-form-group
+          v-model="sortDirection"
+          label="Filtra per"
+          description="Lascia tutto deselezionato per filtrare su tutti i dati"
+          label-cols-sm="3"
+          label-align-sm="right"
+          label-size="sm"
+          class="mb-0"
+          v-slot="{ ariaDescribedby }"
+        >
+          <b-form-checkbox-group
+            v-model="filterOn"
+            :aria-describedby="ariaDescribedby"
+            class="mt-1"
+          >
+            <div class="checkbox-inline-container">
+            <div v-for="(field, index) in sortOptions" :key="index">
+            <b-form-checkbox :value="field.value" :aria-describedby="ariaDescribedby" inline>
+                {{ field.text }}
+            </b-form-checkbox>
+            </div>
+            </div>
+          </b-form-checkbox-group>
+        </b-form-group>
+      </b-col>
+
+      <b-col sm="5" md="6" class="my-1">
+        <b-form-group
+          label="Per pagina"
+          label-for="per-page-select"
+          label-cols-sm="6"
+          label-cols-md="4"
+          label-cols-lg="3"
+          label-align-sm="right"
+          label-size="sm"
+          class="mb-0"
+        >
+          <b-form-select
+            id="per-page-select"
+            v-model="perPage"
+            :options="pageOptions"
+            size="sm"
+          ></b-form-select>
+        </b-form-group>
+      </b-col>
+
+      <b-col sm="7" md="6" class="my-1">
+        <b-pagination
+          v-model="currentPage"
+          :total-rows="totalRows"
+          :per-page="perPage"
+          align="fill"
+          size="sm"
+          class="my-0"
+        ></b-pagination>
+      </b-col>
+    </b-row>
+    <b-row>
+        <b-col class="d-flex justify-content-center">
+            <b-button block variant="outline-primary" @click="exportXls()">
+                    <i class="fa fa-file-excel-o" aria-hidden="true"></i>
+                        Esporta
+                </b-button>
         </b-col>
     </b-row>
     <hr />
@@ -34,7 +213,27 @@
     </b-form-group>
 
     <hr />
-    <b-table ref="table" striped hover :items="selectedCompanies" :fields="selectedFields" :busy="loading" :v-model="tablevalues">
+    <b-table 
+    ref="table" 
+    striped 
+    hover 
+    :items="selectedCompanies" 
+    :fields="selectedFields" 
+    :busy="loading" 
+    :v-model="tablevalues" 
+    responsive="md"
+    :current-page="currentPage"
+    :per-page="perPage"
+    :filter="filterTable"
+    :filter-included-fields="filterOn"
+    :sort-by.sync="sortBy"
+    :sort-desc.sync="sortDesc"
+    :sort-direction="sortDirection"
+    stacked="md"
+    show-empty
+    small
+    @filtered="onFiltered"
+      >
         <template #cell(name)="row">
             {{ row.item.name }}
         </template>
@@ -210,21 +409,20 @@ export default {
                 // { key: 'id', label: 'ID' },
                 {
                     key: 'name',
-                    label: 'Name',
-                    sortable: true,
-                    hide: true
+                    label: 'Nome',
+                    sortable: true
 
                 },
                 //add moma Area name and moma Area email
                 {
                     key: 'moma_name',
                     label: 'Nome Mobility Manager',
-                    sortable: true
+                    sortable: false
                 },
                 {
                     key: 'moma_email',
                     label: 'Email Mobility Manager',
-                    sortable: true
+                    sortable: false
                 },
                 {
                     key: 'num_employees',
@@ -239,21 +437,21 @@ export default {
                 {
                     key: 'offices',
                     label: 'Sedi',
-                    sortable: true
+                    sortable: false
                 },
                 {
                     key: 'pscl',
-                    label: 'PSCL',
+                    label: 'PSCL'
                 },
                 {
                     key: 'psclName',
                     label: 'Nome PSCL',
-                    sortable: true
+                    sortable: false
                 },
                 {
                     key: 'survey',
                     label: 'Questionari',
-                    sortable: true
+                    sortable: false
                 },
                 {
                     key: 'surveyresults',
@@ -298,7 +496,21 @@ export default {
                 },
                 // Add more pscl here
             ],
-            pscl: 3,    
+            pscl: 3, 
+            // totalRows: 1,
+            currentPage: 1,
+            perPage: 5,
+            pageOptions: [5, 10, 15, { value: 100, text: "Show a lot" }],
+            sortBy: '',
+            sortDesc: false,
+            sortDirection: 'asc',
+            filterTable: null,
+            filterOn: [],
+            infoModal: {
+            id: 'info-modal',
+            title: '',
+            content: ''
+            }   
             };
     },
     async created() {
@@ -333,6 +545,8 @@ export default {
         this.fields.forEach(field => {
         this.$set(this.checkboxStates, field.key, true);
         });
+        
+        
         this.loading = false;            
     },
     computed: {
@@ -357,9 +571,24 @@ export default {
             }else if(this.pscl==3){
                 return this.companies;
             }
-            
         },
+        sortOptions() {
+            // Create an options list from our fields
+            return this.selectedFields
+            .filter(f => f.sortable)
+            .map(f => {
+                return { text: f.label, value: f.key }
+            })
+        },
+        totalRows() {
+            return this.selectedCompanies.length
+        },
+
     },
+    // mounted() {
+    //   // Set the initial number of items
+    //   this.totalRows = this.items.length
+    // },
     methods: {
         sleep(milliseconds) {
             return new Promise((resolve) => setTimeout(resolve, milliseconds));
@@ -764,6 +993,11 @@ export default {
 					});
             }
         },
+        onFiltered(filteredItems) {
+        // Trigger pagination to update the number of buttons/pages due to filtering
+        this.totalRows = filteredItems.length
+        this.currentPage = 1
+      }
         
 
     },
