@@ -513,12 +513,8 @@ export default {
             sortDesc: false,
             sortDirection: 'asc',
             filterTable: null,
-            filterOn: [],
-            infoModal: {
-            id: 'info-modal',
-            title: '',
-            content: ''
-            }   
+            filterOn: [], 
+            filtersize: 0,
             };
     },
     async created() {
@@ -548,6 +544,7 @@ export default {
                 return acc + company.offices.length;
             }, 0),
         });
+        this.filtersize = this.companies.length
         // this.selectedCompanies=this.companies;
         // Initialize checkboxStates based on fields
         this.fields.forEach(field => {
@@ -599,7 +596,12 @@ export default {
             })
         },
         totalRows() {
-            return this.selectedCompanies.length
+            if(this.filtersize<this.selectedCompanies.length){
+                return this.filtersize;
+            }else{
+                return this.selectedCompanies.length;
+            }
+            // return this.selectedCompanies.length
         },
 
     },
@@ -1013,7 +1015,8 @@ export default {
         },
         onFiltered(filteredItems) {
         // Trigger pagination to update the number of buttons/pages due to filtering
-        this.totalRows = filteredItems.length
+        this.filtersize = filteredItems.length
+        console.log(filteredItems);
         this.currentPage = 1
       }
         
