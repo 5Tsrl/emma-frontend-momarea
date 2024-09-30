@@ -507,7 +507,7 @@ export default {
             pscl: 3, 
             // totalRows: 1,
             currentPage: 1,
-            perPage: 5,
+            perPage: 10,
             pageOptions: [10, 25, 50],
             sortBy: '',
             sortDesc: false,
