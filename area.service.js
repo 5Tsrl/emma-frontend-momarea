@@ -47,8 +47,9 @@ class AreaService {
 		});
 	}
 	// get companies to export data from export list
-	async getExportList(type = null, q = null) {
+	async getExportList(year = "2023", type = null, q = null) {
 		var params = new URLSearchParams();
+		params.append("year", year);
 		if (type) {
 			params.append("type", type);
 		}

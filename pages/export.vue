@@ -519,7 +519,8 @@ export default {
     },
     async created() {
         this.loading = true;
-        let r = await AreaService.getExportList();
+        this.getYear();
+        let r = await AreaService.getExportList(this.year);
         this.companies = r.data.companies;
         let res = await UserService.getCompanyTypes();
         this.company_types = res.data.company_types;
@@ -620,7 +621,7 @@ export default {
                 console.log(fname);
                 try {
                     this.busy = true;
-                    const res = await UserService.downloadPSCL(company_id, office_id, fname);
+                    const res = await UserService.downloadPSCL(company_id, office_id, fname, this.year);
                     let ext = mime.extension(res.data.type);
                     if (ext === "json") {
                         this.$bvToast.toast("Nessun file caricato", {
@@ -831,7 +832,7 @@ export default {
                 }
             });
             console.log("filtercompanies", companies);
-            await UserService.downloadPSCLZip(companies);
+            await UserService.downloadPSCLZip(companies, this.year);
 
         },
         // export all survey answers using an array of survey ids obtained from the companies object
