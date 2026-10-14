@@ -1,163 +1,264 @@
 <template>
-	<div>
-		<b-form>
-			<b-form-row class="align-items-center">
-				<b-col xl="12">
-					<b-row class="">
-						<b-col sm="6" class="">
-							<b-form-group label="Area" >
-								<b-form-input
-								id="input-2"
-								v-model="area.name"
-								placeholder="Inserisci il nome dell'area"
-								required
-								></b-form-input>
-							</b-form-group>
-						</b-col>
-						<b-col sm="6">
-							<b-form-group label="Utenti" class=""> 
-								<b-form-select
-								id="input-2"
-								v-model="selectedUsers"
-								:options="users"
-								placeholder=""
-								required
-								multiple
-								></b-form-select>
-							</b-form-group>
-						</b-col>
-					</b-row>
-				</b-col>
-			</b-form-row>
-		</b-form>
+  <div class="momarea-page">
+    <b-overlay
+      :show="loading"
+      rounded="sm"
+    >
+      <b-card class="shadow-sm mb-3">
+        <template #header>
+          <h2 class="h5 mb-0">
+            {{ $t('momarea.add.formCardTitle') }}
+          </h2>
+        </template>
+        <CampiObbligatori />
+        <b-form>
+          <b-form-row>
+            <b-col sm="6">
+              <b-form-group
+                :label="$t('momarea.momarea.labelArea') + ' *'"
+                label-for="momarea-area-name"
+              >
+                <b-form-input
+                  id="momarea-area-name"
+                  v-model="area.name"
+                  :placeholder="$t('momarea.add.insert_area_name')"
+                  required
+                  aria-required="true"
+                />
+              </b-form-group>
+            </b-col>
+            <b-col sm="6">
+              <b-form-group
+                :label="$t('momarea.momarea.labelUsers') + ' *'"
+                label-for="momarea-area-users"
+                :aria-label="$t('momarea.momarea.labelUsers')"
+              >
+                <b-form-checkbox-group
+                  id="momarea-area-users"
+                  v-model="selectedUsers"
+                  :options="users"
+                  class="checkbox-inline-wrap"
+                  required
+                  aria-required="true"
+                  multiple
+                />
+              </b-form-group>
+            </b-col>
+          </b-form-row>
+        </b-form>
+      </b-card>
 
-		<h5>Seleziona il tipo di area</h5>
+      <b-card class="shadow-sm mb-3">
+        <template #header>
+          <h2
+            id="momarea-area-type-label"
+            class="h5 mb-0"
+          >
+            {{ $t('momarea.add.areaTypeGroup') + ' *' }}
+          </h2>
+        </template>
 
-		<b-form-group>
-			<b-row class="align-items-center no-gutters">
-				<b-col md="auto" class="mr-1 mb-2">
-					<b-button 
-					@click="changeArea('province')"
-					name="selectedarea" value="province"
-					class="btn  btn-outline-primary btn-block"
-					:class="{ 'active': selectedArea === 'province' }">
-						Provincia
-					</b-button>
-				</b-col>
-				<b-col md="auto" class="mr-1 mb-2">
-					<b-button
-					@click="changeArea('city')"
-					name="selectedarea" value="city"
-					class="btn  btn-outline-primary btn-block"
-					:class="{ 'active': selectedArea === 'city' }">
-						Città
-					</b-button>
-				</b-col>
-				<b-col md="auto" class="mr-1 mb-2">
-					<b-button
-					@click="changeArea('polygon')"
-					name="selectedarea"
-					value="polygon"
-					class="btn  btn-outline-primary btn-block"
-					:class="{ 'active': selectedArea === 'polygon' }">
-						Perimetro
-					</b-button>
-				</b-col>
+        <b-button-group
+          class="flex-wrap"
+          aria-labelledby="momarea-area-type-label"
+        >
+          <b-button
+            :variant="selectedArea === 'province' ? 'primary' : 'outline-primary'"
+            :aria-pressed="(selectedArea === 'province').toString()"
+            @click="changeArea('province')"
+          >
+            <b-icon
+              v-if="selectedArea === 'province'"
+              icon="check"
+              aria-hidden="true"
+              class="me-1"
+            />
+            <span
+              v-if="selectedArea === 'province'"
+              class="sr-only"
+            >{{ $t('momarea.add.stateSelected') }}</span>
+            {{ $t('momarea.add.Province') }}
+          </b-button>
+          <b-button
+            :variant="selectedArea === 'city' ? 'primary' : 'outline-primary'"
+            :aria-pressed="(selectedArea === 'city').toString()"
+            @click="changeArea('city')"
+          >
+            <b-icon
+              v-if="selectedArea === 'city'"
+              icon="check"
+              aria-hidden="true"
+              class="me-1"
+            />
+            <span
+              v-if="selectedArea === 'city'"
+              class="sr-only"
+            >{{ $t('momarea.add.stateSelected') }}</span>
+            {{ $t('momarea.add.City') }}
+          </b-button>
+          <b-button
+            :variant="selectedArea === 'polygon' ? 'primary' : 'outline-primary'"
+            :aria-pressed="(selectedArea === 'polygon').toString()"
+            @click="changeArea('polygon')"
+          >
+            <span
+              v-if="selectedArea === 'polygon'"
+              class="sr-only"
+            >{{ $t('momarea.add.stateSelected') }}</span>
+            {{ $t('momarea.add.Perimeter') }}
+            <b-icon
+              v-if="selectedArea === 'polygon'"
+              icon="check"
+              aria-hidden="true"
+              class="me-1"
+            />
+          </b-button>
+        </b-button-group>
 
-				<b-col md="" class="flex-grow-1 mb-2" ></b-col>
+        <b-alert
+          v-if="selectedArea === 'polygon'"
+          show
+          variant="info"
+          class="mt-3 mb-0 d-flex align-items-center justify-content-end mb-2"
+        >
+          <span>{{ $t('momarea.add.draw_perimeter') }}</span>
+          <b-icon
+            icon="arrow-down-circle-fill"
+            aria-hidden="true"
+            class="ms-2"
+          />
+        </b-alert>
 
-				<b-button md="auto" variant="primary" @click="onSubmit()" 
-				class="ml-1 btn btn-success mb-1">Salva l'area</b-button>
-			</b-row>	
-		</b-form-group>
-		<div v-if="selectedArea === 'polygon'" class="d-flex justify-content-begin align-items-center mb-2">
-			<img width="20" height="20" src="https://img.icons8.com/pastel-glyph/64/000000/info--v1.png" alt="info">
-			<p class="mb-0 ml-2">Usa il tasto crea forma per tracciare il perimetro dell'area</p>
-		</div>
-		
-		<polygon-edit :area="area" :selectedArea="selectedArea" ></polygon-edit>
-	</div>
+        <p
+          v-if="!selectedArea"
+          class="text-muted mt-3 mb-0"
+        >
+          {{ $t('momarea.add.chooseAreaTypePrompt') }}
+        </p>
+
+        <polygon-edit
+          v-if="selectedArea"
+          :class="selectedArea === 'polygon' ? 'mt-0' : 'mt-3'"
+          :area="area"
+          :selected-area="selectedArea"
+        />
+      </b-card>
+
+      <div class="d-flex justify-content-end mb-3">
+        <b-button
+          id="momarea-save-button"
+          variant="success"
+          @click="onSubmit()"
+        >
+          <b-icon
+            icon="check2"
+            aria-hidden="true"
+            class="me-1"
+          />
+          {{ $t('momarea.add.save_area') }}
+        </b-button>
+      </div>
+    </b-overlay>
+  </div>
 </template>
 
 <script>
+import { defineAsyncComponent } from "vue";
 import Util from "@/mixing/util";
-import UserService from "@/services/user.service";
 import PolygonEdit from "../components/PolygonEdit.vue";
-import AreaService from "../area.service";
-
+import AreaService, { usersMapToOptions } from "../area.service";
+import { toast } from "@/services/notification.service";
 
 export default {
-	name: "add",
-	mixins: [Util],
-	components: {
-		PolygonEdit,
-	},
-
-	data(){
-		return{
-			area: {
-				name: null,
-				province: null,
-				city: null,
-				polygon: null,
-				users:[{id: null}],
-
-
-			},
-			users: null,
-			loading: false,
-			selectedArea: null,
-		};
-	},
-	async created(){
-		// this.loading=true;
-		var data = (await AreaService.addArea(null)).data;
-		//this.area=data.area;
-		this.users=data.users;
-		console.log("data",data);
-		// this.loading=false;
-	},
-	computed: {
-		selectedUsers: {
-			get() {
-				// if this.area.users is array 
-				console.log("area",this.area);
-				if(this.area.users == null){
-					return [];
-				}else{
-					if (Array.isArray(this.area.users)) {
-						return this.area.users.map(user => user.id);
-					}else{
-						return this.area.users._ids;
-					}
-				}				
-				
-			},
-			set(value) {
-				console.log("value",value);
-				this.area.users = {_ids:value};
-				console.log("area",this.area);
-			}
-		}
-	},
-	methods: {
-		async onSubmit() {
-			//alert(JSON.stringify(this.area))
-			let res = await AreaService.addArea(this.area);
-			// sent to mommaarea after save
-			this.$router.push({ path: "/momarea" });
-		},
-		onReset(event) {
-        event.preventDefault()
-        this.area.name = ''
-		},
-		changeArea(value){
-			this.selectedArea=value;
-			console.log("select",this.selectedArea);
-		},
-	},
-}	
+  name: "MomareaAdd",
+  components: {
+    PolygonEdit,
+    CampiObbligatori: defineAsyncComponent(() => import("@/components/CampiObbligatori.vue")),
+  },
+  mixins: [Util],
+  data() {
+    return {
+      area: {
+        name: null,
+        province: null,
+        city: null,
+        polygon: null,
+        users: [{ id: null }],
+      },
+      users: null,
+      loading: false,
+      selectedArea: null,
+    };
+  },
+  computed: {
+    selectedUsers: {
+      get() {
+        if (this.area.users == null) {
+          return [];
+        }
+        if (Array.isArray(this.area.users)) {
+          return this.area.users.map(user => String(user.id));
+        }
+        return this.area.users._ids;
+      },
+      set(value) {
+        this.area.users = { _ids: value };
+      },
+    },
+  },
+  async created() {
+    this.loading = true;
+    try {
+      var data = (await AreaService.addArea(null)).data;
+      this.users = usersMapToOptions(data.users);
+    } catch (e) {
+      toast(this.$t('momarea.momarea.loadError'), {
+        title: this.$t('momarea.export.titleError'),
+        variant: "danger",
+      });
+    } finally {
+      this.loading = false;
+    }
+  },
+  methods: {
+    async onSubmit() {
+      this.loading = true;
+      try {
+        await AreaService.addArea(this.area);
+        await this.$router.push({ path: "/momarea" });
+        toast(this.$t('momarea.add.saveSuccess'), {
+          title: this.$t('momarea.momarea.titleAddArea'),
+          variant: "success",
+        });
+      } catch (e) {
+        toast(this.$t('momarea.add.saveError'), {
+          title: this.$t('momarea.export.titleError'),
+          variant: "danger",
+        });
+      } finally {
+        this.loading = false;
+      }
+    },
+    changeArea(value) {
+      this.selectedArea = value;
+    },
+  },
+};
 </script>
 
 <style scoped>
+/* Shared Paper Dashboard SCSS strips focus outlines app-wide; restore a visible
+   focus indicator scoped to this module (WCAG 2.4.7). ::v-deep so it also covers
+   the embedded map editor's controls. */
+.momarea-page ::v-deep :focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.checkbox-inline-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.6rem;
+  /* riga colonna */
+}
 </style>

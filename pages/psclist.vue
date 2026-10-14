@@ -1,170 +1,305 @@
 <template>
-<div>
-    <b-row>
-        <b-col>
-            <b-form-input v-model="filter.name" placeholder="cerca per nome azienda" type="search" v-on:keyup.enter="updateFilter()"></b-form-input>
+  <div class="momarea-page">
+    <b-card
+      :header="$t('momarea.momarea.filtersTitle')"
+      class="shadow-sm mb-3"
+    >
+      <b-row class="align-items-end">
+        <b-col md="5">
+          <b-form-group
+            :label="$t('momarea.psclist.fieldName')"
+            label-for="psclist-filter-name"
+            class="mb-2 mb-md-0"
+          >
+            <b-form-input
+              id="psclist-filter-name"
+              v-model="filter.name"
+              :placeholder="$t('momarea.psclist.placeholderCompanyName')"
+              type="search"
+              @keyup.enter="updateFilter()"
+            />
+          </b-form-group>
         </b-col>
-        <b-col>
-            <b-form-select v-model="filter.type" :options="company_types" value-field="id" text-field="name"></b-form-select>
+        <b-col md="4">
+          <b-form-group
+            :label="$t('momarea.export.labelCompanyType')"
+            label-for="psclist-filter-type"
+            class="mb-2 mb-md-0"
+          >
+            <b-form-select
+              id="psclist-filter-type"
+              v-model="filter.type"
+              :options="company_types"
+              value-field="id"
+              text-field="name"
+            />
+          </b-form-group>
         </b-col>
-        <b-col>
-            <b-button @click="updateFilter()" variant="default"><i class="fa fa-search" aria-hidden="true"></i>
-                filtra
+        <b-col
+          md="3"
+          class="d-flex align-items-end"
+        >
+          <b-button-group class="w-100">
+            <b-button
+              variant="primary"
+              @click="updateFilter()"
+            >
+              <i
+                class="fa fa-search me-1"
+                aria-hidden="true"
+              />
+              {{ $t('momarea.psclist.btnFilter') }}
             </b-button>
-            &nbsp;
-            <b-button variant="outline-primary" @click="exportXls()">
-                <i class="fa fa-file-excel-o" aria-hidden="true"></i>
-                Esporta</b-button>
+            <b-button
+              variant="outline-primary"
+              @click="exportXls()"
+            >
+              <i
+                class="fa fa-file-excel-o me-1"
+                aria-hidden="true"
+              />
+              {{ $t('momarea.psclist.btnExport') }}
+            </b-button>
+          </b-button-group>
         </b-col>
-    </b-row>
+      </b-row>
+    </b-card>
 
-    <hr />
-    <b-table ref="table" striped hover :items="companies" :fields="fields" :busy="loading" :v-model="tablevalues">
+    <b-card
+      no-body
+      class="shadow-sm mb-3"
+    >
+      <b-table
+        ref="table"
+        class="mb-0"
+        striped
+        hover
+        :items="companies"
+        :fields="fields"
+        :busy="loading"
+        :v-model="tablevalues"
+      >
         <template #cell(name)="row">
-            {{ row.item.name }}
+          {{ row.item.name }}
         </template>
         <!-- count numbre of employees -->
         <template #cell(num_employees)="row">
-            {{ row.item.name=="Totale"?row.item.num_employees:row.item.offices.reduce((a, b) => a + b.num_employees, 0) }}
+          {{ row.item.name=="Totale"?row.item.num_employees:row.item.offices.reduce((a, b) => a + b.num_employees, 0) }}
         </template>
         <template #cell(moma_name)="row">
-            <template v-for="user in row.item.users">
-                <b-tr>
-                    {{ user.first_name }} {{ user.last_name }}
-                </b-tr>
-            </template>
+          <div
+            v-for="(user, index) in row.item.users"
+            :key="`moma-name-${user.id || user.username || index}`"
+            class="d-block"
+          >
+            {{ user.first_name }} {{ user.last_name }}
+          </div>
         </template>
         <template #cell(moma_email)="row">
-            <template v-for="user in row.item.users">
-                <b-tr>
-                    {{ user.username }}
-                </b-tr>
-            </template>
+          <div
+            v-for="(user, index) in row.item.users"
+            :key="`moma-email-${user.id || user.username || index}`"
+            class="d-block"
+          >
+            {{ user.username }}
+          </div>
         </template>
 
         <template #cell(offices)="row">
-            <template v-for="office in row.item.offices">
-                <b-tr>{{ office.name }}</b-tr>
-            </template>
-            <!-- {{ row.item.offices.length>0 ? "" : "" }}
-                <b-tr v-for="row.item.offices.map(office => office.name) ">{{}}</b-tr> -->
+          <div
+            v-for="(office, index) in row.item.offices"
+            :key="`office-${office.id || office.name || index}`"
+            class="d-block"
+          >
+            {{ office.name }}
+          </div>
         </template>
         <template #cell(pscl)="row">
-            <template v-for="office in row.item.offices" v-if="row.item.name!=='Totale'">
-                <b-tr>
-                    <b-icon @click="DownloadPscl(row.item.id,office.id,row.item.name,office.pscl[office.pscl.length - 1])" :icon="iconDownload(office.pscl)" :title="`PSCL ${office.name}`" v-bind:style="{ color: iconColor(office.pscl) }">
-                    </b-icon>
-                </b-tr>
-            </template>
-            <template v-if="row.item.name=='Totale'">
-                <b-tr>
-                    <b-icon @click="ZipPscl()" icon="download" title="PSCL Zip">
-                    </b-icon>
-                </b-tr>
-            </template>
+          <div
+            v-for="(office, index) in row.item.offices"
+            v-if="row.item.name!=='Totale'"
+            :key="`pscl-${office.id || office.name || index}`"
+            class="d-block"
+          >
+            <b-button
+              variant="link"
+              class="p-0"
+              :aria-label="`PSCL ${office.name} — ${office.pscl.length > 0 ? $t('momarea.momarea.statusHasFiles') : $t('momarea.momarea.statusNoFiles')}`"
+              :title="`PSCL ${office.name} — ${office.pscl.length > 0 ? $t('momarea.momarea.statusHasFiles') : $t('momarea.momarea.statusNoFiles')}`"
+              :style="{ color: iconColor(office.pscl) }"
+              @click="DownloadPscl(row.item.id,office.id,row.item.name,office.pscl[office.pscl.length - 1])"
+            >
+              <b-icon
+                :icon="iconDownload(office.pscl)"
+                aria-hidden="true"
+              />
+            </b-button>
+          </div>
+          <template v-if="row.item.name=='Totale'">
+            <div class="d-block">
+              <b-button
+                variant="link"
+                class="p-0"
+                :aria-label="$t('momarea.psclist.titlePSCLZip')"
+                :title="$t('momarea.psclist.titlePSCLZip')"
+                @click="ZipPscl()"
+              >
+                <b-icon
+                  icon="download"
+                  aria-hidden="true"
+                />
+              </b-button>
+            </div>
+          </template>
         </template>
         <template #cell(psclName)="row">
-            <template v-for="office in row.item.offices" v-if="row.item.name!=='Totale'">
-                <b-tr v-if="office!==null">{{ office.pscl[office.pscl.length - 1] }}</b-tr>
-            </template>
+          <div
+            v-for="(office, index) in row.item.offices"
+            v-if="row.item.name!=='Totale'"
+            :key="`pscl-name-${office && (office.id || office.name) || index}`"
+            class="d-block"
+          >
+            <span
+              v-if="office!==null"
+              class="d-block"
+            >
+              {{ office.pscl[office.pscl.length - 1] }}
+            </span>
+          </div>
         </template>
-        <!-- <template #cell(surveyresults)="row">
-            <template v-for="survey in row.item.surveys" v-if="row.item.name!=='Totale'">
-                <b-tr v-if="survey!==null">
-                    <b-icon @click="exportSurveyData(survey.id,survey.name)" icon="download" :title="`Risultati Questionario ${survey.name}`">
-                    </b-icon>
-                </b-tr>
-            </template>
-            <template v-if="row.item.name=='Totale'">
-                <b-tr>
-                    <b-icon @click="Export()" icon="download" title="Risultati Questionario tutti i Questionari">
-                    </b-icon>
-                </b-tr>
-            </template>
-        </template>
-        <template #cell(impatti)="row">
-            <template v-for=" survey in  row.item.surveys">
-                <b-tr v-if="row.item.offices[0] !== undefined">
-                    <b-icon @click="generatePSCLXlsx( survey.id,row.item.offices[0].id,row.item.name,row.item.offices[0].name)" icon="download" :title="`Foglio Impatti ${row.item.offices[0].name}`">
-                    </b-icon>
-                </b-tr>
-            </template>
-        </template> -->
         <template #cell(offices_num)="row">
-            {{ row.item.name=="Totale"?row.item.offices_num:row.item.offices.length }}
+          {{ row.item.name=="Totale"?row.item.offices_num:row.item.offices.length }}
         </template>
         <template #table-busy>
-            <div class="text-center text-danger my-2">
-                <b-spinner class="align-middle"></b-spinner>
-                <strong>Loading...</strong>
-            </div>
+          <div class="text-center text-danger my-2">
+            <b-spinner class="align-middle" />
+            <strong>{{ $t('momarea.psclist.loading') }}</strong>
+          </div>
         </template>
-    </b-table>
-<template>
-  <div>
-    <!-- Modal for selecting export options -->
-    <b-modal v-model="showModalExport" title="Opzioni di Esportazione" hide-footer>
-      <!-- Buttons Export all or select surveys and questions -->
-      <b-row>
-        <b-col ><b-button @click="AllExportSurveyData('Tutti')" variant="primary">Esporta tutti</b-button> </b-col>
-        <b-col ><b-button @click="showModalForExport()" variant="primary">Esporta selezione</b-button></b-col>
-      </b-row>
-        
-    </b-modal>
-  </div>
-</template>
+      </b-table>
+    </b-card>
 
-<template>
-  <div>
-
-    <!-- Modal for selecting surveys and questions -->
-    <b-modal v-model="showModalSurveys" title="Esporta i resultati" hide-footer>
-      <!-- Survey selection -->
-    <label for="surveySelect">Scegli i questionari che vuoi esportare:</label>
-      <b-form-select id="surveySelect" v-model="selectedSurvey" multiple>
-        <option v-for="survey in surveys" :value="survey.id">{{ survey.name }}</option>
-      </b-form-select>
-
-      <!-- next button open modalquestions and close showModalSurveys -->
-        <b-button @click="showModalForQuestions()" variant="primary">Seguente</b-button>
-    </b-modal>
-  </div>
-</template>
-<template>
-  <div>
-
-    <!-- Modal for selecting surveys and questions -->
-    <b-modal v-model="showModalQuestions" title="Esporta i resultati" hide-footer>
-        <!-- busy until get questions -->
-        <b-spinner v-if="questions.length===0" label="Loading..."></b-spinner>
-
-      <!-- Question selection -->
-      <div v-if="questions.length!=0">
-        <label for="questionSelect">Scegli le domande che desideri esportare nei risultati:</label>
-        <b-form-select id="questionSelect" v-model="selectedQuestions" multiple>
-            <option v-for="question in questions" :value="question.id">{{ question.text }}</option>
-        </b-form-select>
-
-      <!-- Export button -->
-      <b-button @click="AllExportSurveyData('Tutti',0)" variant="primary">Esporta</b-button>
+    <div>
+      <div>
+        <!-- Modal for selecting export options -->
+        <b-modal
+          v-model="showModalExport"
+          :title="$t('momarea.psclist.modalTitleExportOptions')"
+          hide-footer
+        >
+          <!-- Buttons Export all or select surveys and questions -->
+          <b-row>
+            <b-col>
+              <b-button
+                variant="primary"
+                @click="AllExportSurveyData('Tutti')"
+              >
+                {{ $t('momarea.psclist.btnExportAll') }}
+              </b-button>
+            </b-col>
+            <b-col>
+              <b-button
+                variant="primary"
+                @click="showModalForExport()"
+              >
+                {{ $t('momarea.psclist.btnExportSelection') }}
+              </b-button>
+            </b-col>
+          </b-row>
+        </b-modal>
+      </div>
     </div>
-     
-    </b-modal>
-  </div>
-</template>
 
-    
-</div>
+    <div>
+      <div>
+        <!-- Modal for selecting surveys and questions -->
+        <b-modal
+          v-model="showModalSurveys"
+          :title="$t('momarea.psclist.modalTitleExportResults')"
+          hide-footer
+        >
+          <!-- Survey selection -->
+          <label for="surveySelect">{{ $t('momarea.psclist.labelChooseSurveys') }}</label>
+          <b-form-select
+            id="surveySelect"
+            v-model="selectedSurvey"
+            multiple
+          >
+            <option
+              v-for="survey in surveys"
+              :key="survey.id"
+              :value="survey.id"
+            >
+              {{ survey.name }}
+            </option>
+          </b-form-select>
+
+          <!-- next button open modalquestions and close showModalSurveys -->
+          <b-button
+            variant="primary"
+            @click="showModalForQuestions()"
+          >
+            {{ $t('momarea.psclist.btnNext') }}
+          </b-button>
+        </b-modal>
+      </div>
+    </div>
+
+    <div>
+      <div>
+        <!-- Modal for selecting surveys and questions -->
+        <b-modal
+          v-model="showModalQuestions"
+          :title="$t('momarea.psclist.modalTitleExportResults')"
+          hide-footer
+        >
+          <!-- busy until get questions -->
+          <b-spinner
+            v-if="questions.length===0"
+            :label="$t('momarea.psclist.loading')"
+          />
+
+          <!-- Question selection -->
+          <div v-if="questions.length!=0">
+            <label for="questionSelect">{{ $t('momarea.psclist.labelChooseQuestions') }}</label>
+            <b-form-select
+              id="questionSelect"
+              v-model="selectedQuestions"
+              multiple
+            >
+              <option
+                v-for="question in questions"
+                :key="question.id"
+                :value="question.id"
+              >
+                {{ question.text }}
+              </option>
+            </b-form-select>
+
+            <!-- Export button -->
+            <b-button
+              variant="primary"
+              @click="AllExportSurveyData('Tutti',0)"
+            >
+              {{ $t('momarea.psclist.btnExport') }}
+            </b-button>
+          </div>
+        </b-modal>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
 import UserService from "@/services/user.service";
 import AreaService from "../area.service";
 import Util from "@/mixing/util";
-var mime = require("mime-types");
-import XLSX from "xlsx";
+import mime from "mime-types";
+import * as XLSX from "xlsx";
+import { toast } from "@/services/notification.service";
 
 export default {
+    name: "MomareaPsclist",
     mixins: [Util],
     data() {
         return {
@@ -189,42 +324,42 @@ export default {
                 // { key: 'id', label: 'ID' },
                 {
                     key: 'name',
-                    label: 'Name',
+                    label: this.$t('momarea.psclist.fieldName'),
                     sortable: true
                 },
                 //add moma Area name and moma Area email
                 {
                     key: 'moma_name',
-                    label: 'Nome Mobility Manager',
+                    label: this.$t('momarea.psclist.fieldMomaName'),
                     sortable: true
                 },
                 {
                     key: 'moma_email',
-                    label: 'Email Mobility Manager',
+                    label: this.$t('momarea.psclist.fieldMomaEmail'),
                     sortable: true
                 },
                 {
                     key: 'num_employees',
-                    label: 'Numero Impiegati / Studenti',
+                    label: this.$t('momarea.psclist.fieldNumEmployees'),
                     sortable: true
                 },
                 {
                     key: 'offices_num',
-                    label: 'numero di sedi',
+                    label: this.$t('momarea.psclist.fieldOfficesNum'),
                     sortable: true
                 },
                 {
                     key: 'offices',
-                    label: 'Sedi',
+                    label: this.$t('momarea.psclist.fieldOffices'),
                     sortable: true
                 },
                 {
                     key: 'pscl',
-                    label: 'PSCL',
+                    label: this.$t('momarea.psclist.fieldPSCL'),
                 },
                 {
                     key: 'psclName',
-                    label: 'Nome PSCL',
+                    label: this.$t('momarea.psclist.fieldPSCLName'),
                     sortable: true
                 },
                 // {
@@ -265,7 +400,7 @@ export default {
         this.company_types.unshift(
 			{
 					id: null,
-					name: "Tutte",
+					name: this.$t('momarea.psclist.optionAll'),
 				});
         this.filter.type=this.company_types[0].id;
         // add last row with sum of employees and offices
@@ -300,8 +435,8 @@ export default {
                     const res = await UserService.downloadPSCL(company_id, office_id, fname);
                     let ext = mime.extension(res.data.type);
                     if (ext === "json") {
-                        this.$bvToast.toast("Nessun file caricato", {
-                            title: "No Uploads",
+                        toast(this.$t('momarea.psclist.toastNoUploads'), {
+                            title: this.$t('momarea.psclist.titleNoUploads'),
                             variant: "warning",
                             autoHideDelay: 2000,
                             appendToast: true,
@@ -320,26 +455,25 @@ export default {
                     this.busy = false;
                 }
             } else {
-                this.$bvToast.toast("Nessun file caricato", {
-                    title: "No Uploads",
+                toast(this.$t('momarea.psclist.toastNoUploads'), {
+                    title: this.$t('momarea.psclist.titleNoUploads'),
                     variant: "warning",
                     autoHideDelay: 2000,
                     appendToast: true,
                 });
             }
-            // await AreaService.downloadPscl(company_id, office_id);
         },
         async exportSurveyData(survey_id, survey_name) {
             try {
                 this.busy = true;
-                this.$bvToast.toast("Esportazione in corso", {
-                    title: "Esportazione",
+                toast(this.$t('momarea.psclist.toastExportInProgress'), {
+                    title: this.$t('momarea.psclist.titleExport'),
                     variant: "info",
                     autoHideDelay: 2000,
                     appendToast: true,
                 });
                 let res = await UserService.exportSurveyData(survey_id);
-                this.$bvToast.toast(res.data.message, {
+                toast(res.data.message, {
 						title: "No Uploads",
 						variant: "warning",
 						autoHideDelay: 2000,
@@ -355,7 +489,7 @@ export default {
                 // let ext = mime.extension(res.data.type);
                 // console.log(res);
                 // // if (ext === "json") {
-                // //     this.$bvToast.toast("Error in questionnaire export", {
+                // //     toast("Error in questionnaire export", {
                 // //         title: "No Uploads",
                 // //         variant: "warning",
                 // //         autoHideDelay: 2000,
@@ -388,8 +522,8 @@ export default {
                 document.body.appendChild(link);
                 link.click();
             } catch (e) {
-                this.$bvToast.toast(String(e), {
-                    title: "Errore",
+                toast(String(e), {
+                    title: this.$t('momarea.psclist.titleError'),
                     variant: "danger",
                     autoHideDelay: 2000,
                     appendToast: true,
@@ -430,8 +564,7 @@ export default {
                 const rows = this.$refs.table.$el.querySelectorAll('tr');
 
                 // Define columns to omit
-                const omitColumns = ['PSCL', 'Risultati Questionario', 'Foglio Impatti'];
-
+                const omitColumns = [this.$t('momarea.psclist.fieldPSCL'), this.$t('momarea.psclist.fieldSurveyResults'), this.$t('momarea.psclist.fieldImpacts')];
                 // Map rows to data
                 const data = Array.from(rows).map(row => {
                     const cells = Array.from(row.querySelectorAll('td'));
@@ -463,16 +596,16 @@ export default {
                 // Create a workbook
                 let wb = XLSX.utils.book_new();
                 wb.Props = {
-                    Title: "Esportazione Excel",
-                    Subject: "Esportazione",
+                    Title: this.$t('momarea.psclist.excelTitle'),
+                    Subject: this.$t('momarea.psclist.excelSubject'),
                     Author: "--",
                     CreatedDate: new Date(),
                 };
-                wb.SheetNames.push("moma area table");
+                wb.SheetNames.push(this.$t('momarea.psclist.excelSheetName'));
                 // Convert data to worksheet
                 const ws = XLSX.utils.json_to_sheet(dataclean);
-                wb.Sheets["moma area table"] = ws;
-                XLSX.writeFile(wb, "indicatore.xlsx");
+                wb.Sheets[this.$t('momarea.psclist.excelSheetName')] = ws;
+                XLSX.writeFile(wb, this.$t('momarea.psclist.excelFileName'));
             } catch (err) {
                 console.error(err);
             }
@@ -487,11 +620,13 @@ export default {
             }
         },
         iconColor(files) {
-            // console.log(files);
+            // AA-compliant success/danger (≥4.5:1 on white); the icon shape
+            // (download vs x-circle) carries the same meaning without relying on
+            // color. Named "green"/"red" failed WCAG 1.4.3 contrast.
             if (files.length > 0) {
-                return "green";
+                return "#198253";
             } else {
-                return "red";
+                return "#b33c12";
             }
         },
         async ZipPscl() {
@@ -512,8 +647,6 @@ export default {
         },
         // export all survey answers using an array of survey ids obtained from the companies object
         async AllExportSurveyData(survey_name, all = true) {
-            
-            
             try {
                 this.busy = true;
                 
@@ -528,8 +661,8 @@ export default {
                     
                     // alert if not questions are selected
                     if (this.selectedQuestions.length === 0) {
-                        this.$bvToast.toast("Seleziona almeno una domanda", {
-                            title: "Errore",
+                        toast(this.$t('momarea.psclist.toastSelectQuestion'), {
+                            title: this.$t('momarea.psclist.titleError'),
                             variant: "danger",
                             autoHideDelay: 2000,
                             appendToast: true,
@@ -537,8 +670,8 @@ export default {
                         return;
                     }else{
                         // alert the export is in progress
-                        this.$bvToast.toast("Esportazione in corso", {
-                            title: "Esportazione",
+                        toast(this.$t('momarea.psclist.toastExportInProgress'), {
+                            title: this.$t('momarea.psclist.titleExport'),
                             variant: "info",
                             autoHideDelay: 2000,
                             appendToast: true,
@@ -547,7 +680,7 @@ export default {
                     this.showModalQuestions = false;
                     res = await UserService.exportSurveyData(null,all,exportData);
                 }
-                this.$bvToast.toast(res.data.message, {
+                toast(res.data.message, {
 						title: "No Uploads",
 						variant: "warning",
 						autoHideDelay: 2000,
@@ -564,7 +697,7 @@ export default {
                 // let ext = mime.extension(res.data.type);
                 
                 // if (ext === "json") {
-                //     this.$bvToast.toast("Error in survey export", {
+                //     toast("Error in survey export", {
                 //         title: "No Uploads",
                 //         variant: "warning",
                 //         autoHideDelay: 2000,
@@ -581,9 +714,8 @@ export default {
                 // link.click();
             } catch (error) {
                 console.log(error);
-                // alert error in export
-                this.$bvToast.toast("Errore in esportazione", {
-                    title: "Errore",
+                toast(this.$t('momarea.psclist.toastExportError'), {
+                    title: this.$t('momarea.psclist.titleError'),
                     variant: "danger",
                     autoHideDelay: 2000,
                     appendToast: true,
@@ -616,8 +748,8 @@ export default {
         async showModalForQuestions() {
             // alert if no survey is selected
             if (this.selectedSurvey === null) {
-                this.$bvToast.toast("Seleziona almeno un questionario", {
-                    title: "Errore",
+                toast(this.$t('momarea.psclist.toastSelectSurvey'), {
+                    title: this.$t('momarea.psclist.titleError'),
                     variant: "danger",
                     autoHideDelay: 2000,
                     appendToast: true,
@@ -641,18 +773,17 @@ export default {
                 let res = await UserService.getStatusExport(survey_id);
                 if (res.data == null){
                     this.lock = [false, false, false, false, false];
-                    this.message = "Scegli un'operazione";
+                    this.message = this.$t('momarea.psclist.messageChooseOperation');
                     return;
                 }
 				console.log("res from getStatusExport",res);
                 let ext = mime.extension(res.data.type);
 				console.log("ext",ext);
-				if(ext === "json")
-				{
+				if(ext === "json") {
 					let message = res.data.message;
 					let lock = res.data.lock;
-					this.$bvToast.toast("In lavorazione", {
-							title: "No Uploads",
+					toast(this.$t('momarea.psclist.toastInProgress'), {
+							title: this.$t('momarea.psclist.titleNoUploads'),
 							variant: "warning",
 							autoHideDelay: 2000,
 							appendToast: true,
@@ -663,8 +794,8 @@ export default {
 				}else{		
 					
 					// alert of the download
-					this.$bvToast.toast("Esportazione completata", {
-						title: "Esportazione",
+					toast(this.$t('momarea.psclist.toastExportCompleted'), {
+						title: this.$t('momarea.psclist.titleExport'),
 						variant: "success",
 						autoHideDelay: 2000,
 						appendToast: true,
@@ -681,15 +812,44 @@ export default {
 				}
 
             } catch (error) {
-				this.$bvToast.toast(error.message, {
-						title: "No Uploads",
-						variant: "warning",
-						autoHideDelay: 2000,
-						appendToast: true,
-					});
+                toast(error.message, {
+                    title: this.$t('momarea.psclist.titleNoUploads'),
+                    variant: "warning",
+                    autoHideDelay: 2000,
+                    appendToast: true,
+                });
             }
         },
 
     },
 };
 </script>
+
+<style scoped>
+/* Shared Paper Dashboard SCSS strips focus outlines app-wide; restore a visible
+   focus indicator scoped to this module (WCAG 2.4.7). */
+.momarea-page :focus-visible {
+	outline: 2px solid currentColor;
+	outline-offset: 2px;
+}
+</style>
+
+<!-- The b-table renders th/td in a child component, so a scoped selector cannot
+     reach them; this non-scoped block overrides the Paper Dashboard light-gray
+     table-header/muted text with #495057 (~7:1 on white) to meet WCAG 2.1 AA
+     contrast (1.4.3). Mirrors the override already present in export.vue. -->
+<style>
+.momarea-page .text-muted,
+.momarea-page small,
+.momarea-page .small,
+.momarea-page .page-link,
+.momarea-page .btn-link,
+.momarea-page .custom-select,
+.momarea-page .form-control,
+.momarea-page .table th,
+.momarea-page .table td,
+.momarea-page .table caption,
+.momarea-page strong {
+	color: #495057 !important;
+}
+</style>

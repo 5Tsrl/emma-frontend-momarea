@@ -1,467 +1,665 @@
 <template>
-<div>
-    <!-- <b-row>
-        <b-col>
-            <b-form-input v-model="filter.name" placeholder="cerca per nome azienda" type="search" v-on:keyup.enter="updateFilter()"></b-form-input>
-        </b-col>
-        <b-col>
-            <b-form-select v-model="filter.type" :options="company_types" value-field="id" text-field="name"></b-form-select>
-        </b-col>
-        <b-col>
-            <b-button @click="updateFilter()" variant="default"><i class="fa fa-search" aria-hidden="true"></i>
-                filtra
-            </b-button>
-            &nbsp;
-            <b-button variant="outline-primary" @click="exportXls()">
-                <i class="fa fa-file-excel-o" aria-hidden="true"></i>
-                Esporta</b-button>
-        </b-col>
-        <b-col>
-            
-        </b-col>
-    </b-row> -->
-    <b-row>
-        <b-col lg="6" class="my-1">
-            <b-form-group
-                label="Tipo di azienda"
-                label-for="type-of-company"
-                label-cols-sm="3"
-                label-align-sm="right"
-                label-size="sm"
-                class="mb-0"
-                v-slot="{ ariaDescribedby }"
+  <div class="momarea-page">
+    <b-card
+      :header="$t('momarea.momarea.filtersTitle')"
+      class="shadow-sm mb-3"
+    >
+      <b-row>
+        <b-col
+          lg="6"
+          class="my-1"
+        >
+          <b-form-group
+            v-slot="{ ariaDescribedby }"
+            :label="$t('momarea.export.labelCompanyType')"
+            label-for="type-of-company"
+            label-cols-sm="3"
+            label-align-sm="right"
+            label-size="sm"
+            class="mb-0"
+          >
+            <b-input-group size="sm">
+              <b-form-select
+                id="type-of-company"
+                v-model="filter.type"
+                :options="company_types"
+                value-field="id"
+                text-field="name"
+                :aria-label="$t('momarea.export.labelCompanyType')"
+              />
+              <b-input-group-append>
+                <b-button
+                  variant="default"
+                  @click="updateFilter()"
                 >
-                <b-input-group size="sm">
-                    <b-form-select v-model="filter.type" :options="company_types" value-field="id" text-field="name"></b-form-select>
-                    <b-input-group-append>
-                        <b-button @click="updateFilter()" variant="default"><i class="fa fa-search" aria-hidden="true"></i>
-                            filtra
-                        </b-button>
-                    </b-input-group-append>
-                </b-input-group>
-            </b-form-group>
+                  <i
+                    class="fa fa-search"
+                    aria-hidden="true"
+                  />
+                  {{ $t('momarea.export.btnFilter') }}
+                </b-button>
+              </b-input-group-append>
+            </b-input-group>
+          </b-form-group>
         </b-col>
             
-        <b-col lg="6" class="my-1">
-            <b-form-group
-                label="Filtra per PSCL"
-                label-for="pscl"
-                label-cols-sm="3"
-                label-align-sm="right"
-                label-size="sm"
-                class="mb-0"
-                v-slot="{ ariaDescribedby }"
-                >
-                    <b-form-select v-model="pscl" :options="pscl_options" value-field="id" text-field="name"></b-form-select>
-            </b-form-group>
+        <b-col
+          lg="6"
+          class="my-1"
+        >
+          <b-form-group
+            v-slot="{ ariaDescribedby }"
+            :label="$t('momarea.export.labelFilterPSCL')"
+            label-for="pscl"
+            label-cols-sm="3"
+            label-align-sm="right"
+            label-size="sm"
+            class="mb-0"
+          >
+            <b-form-select
+              id="pscl"
+              v-model="pscl"
+              :options="pscl_options"
+              value-field="id"
+              text-field="name"
+              :aria-label="$t('momarea.export.labelFilterPSCL')"
+            />
+          </b-form-group>
         </b-col>
-      <b-col lg="6" class="my-1">
-            <b-form-group
-            label="Ordina"
+        <b-col
+          lg="6"
+          class="my-1"
+        >
+          <b-form-group
+            v-slot="{ ariaDescribedby }"
+            :label="$t('momarea.export.labelSort')"
             label-for="sort-by-select"
             label-cols-sm="3"
             label-align-sm="right"
             label-size="sm"
             class="mb-0"
-            v-slot="{ ariaDescribedby }"
-            >
+          >
             <b-input-group size="sm">
-                <b-form-select
+              <b-form-select
                 id="sort-by-select"
                 v-model="sortBy"
                 :options="sortOptions"
                 :aria-describedby="ariaDescribedby"
                 class="w-75"
-                >
+              >
                 <template #first>
-                    <option value="">-- nessuno --</option>
+                  <option value="">
+                    {{ $t('momarea.export.optionNone') }}
+                  </option>
                 </template>
-                </b-form-select>
+              </b-form-select>
 
-                <b-form-select
+              <b-form-select
+                id="sort-direction-select"
                 v-model="sortDesc"
                 :disabled="!sortBy"
                 :aria-describedby="ariaDescribedby"
+                :aria-label="$t('momarea.export.labelSort')"
                 size="sm"
                 class="w-25"
-                >
-                <option :value="false">Crescente</option>
-                <option :value="true">Decrescente</option>
-                </b-form-select>
+              >
+                <option :value="false">
+                  {{ $t('momarea.export.optionAscending') }}
+                </option>
+                <option :value="true">
+                  {{ $t('momarea.export.optionDescending') }}
+                </option>
+              </b-form-select>
             </b-input-group>
-            </b-form-group>
-      </b-col>
+          </b-form-group>
+        </b-col>
 
-      <b-col lg="6" class="my-1">
-        <b-form-group
-          label="Ordinamento iniziale"
-          label-for="initial-sort-select"
-          label-cols-sm="3"
-          label-align-sm="right"
-          label-size="sm"
-          class="mb-0"
+        <b-col
+          lg="6"
+          class="my-1"
         >
-          <b-form-select
-            id="initial-sort-select"
-            v-model="sortDirection"
-            :options="['asc', 'desc', 'last']"
-            size="sm"
-          ></b-form-select>
-        </b-form-group>
-      </b-col>
-
-      <b-col lg="6" class="my-1">
-        <b-form-group
-          label="Filtro"
-          label-for="filter-input"
-          label-cols-sm="3"
-          label-align-sm="right"
-          label-size="sm"
-          class="mb-0"
-        >
-          <b-input-group size="sm">
-            <b-form-input
-              id="filter-input"
-              v-model="filterTable"
-              type="search"
-              placeholder="Digita per cercare"
-            ></b-form-input>
-
-            <b-input-group-append>
-              <b-button :disabled="!filterTable" @click="filterTable = ''">Cancella</b-button>
-            </b-input-group-append>
-          </b-input-group>
-        </b-form-group>
-      </b-col>
-
-      <b-col lg="6" class="my-1">
-        <b-form-group
-          v-model="sortDirection"
-          label="Filtra per"
-          description="Lascia tutto deselezionato per filtrare su tutti i dati"
-          label-cols-sm="3"
-          label-align-sm="right"
-          label-size="sm"
-          class="mb-0"
-          v-slot="{ ariaDescribedby }"
-        >
-          <b-form-checkbox-group
-            v-model="filterOn"
-            :aria-describedby="ariaDescribedby"
-            class="mt-1"
+          <b-form-group
+            :label="$t('momarea.export.labelInitialSort')"
+            label-for="initial-sort-select"
+            label-cols-sm="3"
+            label-align-sm="right"
+            label-size="sm"
+            class="mb-0"
           >
-            <div class="checkbox-inline-container">
-            <div v-for="(field, index) in sortOptions" :key="index">
-            <b-form-checkbox :value="field.value" :aria-describedby="ariaDescribedby" inline>
-                {{ field.text }}
-            </b-form-checkbox>
-            </div>
-            </div>
-          </b-form-checkbox-group>
-        </b-form-group>
-      </b-col>
+            <b-form-select
+              id="initial-sort-select"
+              v-model="sortDirection"
+              :options="['asc', 'desc', 'last']"
+              size="sm"
+            />
+          </b-form-group>
+        </b-col>
 
-      <b-col sm="5" md="6" class="my-1">
-        <b-form-group
-          label="Per pagina"
-          label-for="per-page-select"
-          label-cols-sm="6"
-          label-cols-md="4"
-          label-cols-lg="3"
-          label-align-sm="right"
-          label-size="sm"
-          class="mb-0"
+        <b-col
+          lg="6"
+          class="my-1"
         >
-          <b-form-select
-            id="per-page-select"
-            v-model="perPage"
-            :options="pageOptions"
-            size="sm"
-          ></b-form-select>
-        </b-form-group>
-      </b-col>
+          <b-form-group
+            :label="$t('momarea.export.labelFilter')"
+            label-for="filter-input"
+            label-cols-sm="3"
+            label-align-sm="right"
+            label-size="sm"
+            class="mb-0"
+          >
+            <b-input-group size="sm">
+              <b-form-input
+                id="filter-input"
+                v-model="filterTable"
+                type="search"
+                :placeholder="$t('momarea.export.placeholderSearch')"
+              />
 
-      <b-col sm="7" md="6" class="my-1">
+              <b-input-group-append>
+                <b-button
+                  :disabled="!filterTable"
+                  @click="filterTable = ''"
+                >
+                  {{ $t('momarea.export.btnClear') }}
+                </b-button>
+              </b-input-group-append>
+            </b-input-group>
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          lg="6"
+          class="my-1"
+        >
+          <b-form-group
+            v-slot="{ ariaDescribedby }"
+            v-model="sortDirection"
+            :label="$t('momarea.export.labelFilterBy')"
+            :description="$t('momarea.export.descriptionFilterBy')"
+            label-cols-sm="3"
+            label-align-sm="right"
+            label-size="sm"
+            class="mb-0"
+          >
+            <b-form-checkbox-group
+              v-model="filterOn"
+              :aria-describedby="ariaDescribedby"
+              class="mt-1"
+            >
+              <div class="checkbox-inline-container">
+                <div
+                  v-for="(field, index) in sortOptions"
+                  :key="index"
+                >
+                  <b-form-checkbox
+                    :value="field.value"
+                    :aria-describedby="ariaDescribedby"
+                    inline
+                  >
+                    {{ field.text }}
+                  </b-form-checkbox>
+                </div>
+              </div>
+            </b-form-checkbox-group>
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          sm="5"
+          md="6"
+          class="my-1"
+        >
+          <b-form-group
+            :label="$t('momarea.export.labelPerPage')"
+            label-for="per-page-select"
+            label-cols-sm="6"
+            label-cols-md="4"
+            label-cols-lg="3"
+            label-align-sm="right"
+            label-size="sm"
+            class="mb-0"
+          >
+            <b-form-select
+              id="per-page-select"
+              v-model="perPage"
+              :options="pageOptions"
+              size="sm"
+            />
+          </b-form-group>
+        </b-col>
+      </b-row>
+    </b-card>
+
+    <b-card
+      :header="$t('momarea.momarea.resultsTitle')"
+      class="shadow-sm mb-3"
+    >
+      <!-- Compact results toolbar: column selector (left) + export (right) -->
+      <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+        <b-dropdown
+          variant="outline-primary"
+          size="sm"
+          :text="$t('momarea.export.selectColumns')"
+        >
+          <b-dropdown-form class="momarea-columns-menu">
+            <b-form-checkbox
+              :checked="allColumnsSelected"
+              @change="toggleAllColumns"
+            >
+              {{ $t('momarea.export.toggleAll') }}
+            </b-form-checkbox>
+            <b-dropdown-divider />
+            <b-form-checkbox
+              v-for="(field, index) in fields"
+              :key="index"
+              v-model="checkboxStates[field.key]"
+            >
+              {{ field.label }}
+            </b-form-checkbox>
+          </b-dropdown-form>
+        </b-dropdown>
+
+        <b-button
+          variant="primary"
+          size="sm"
+          @click="exportXls()"
+        >
+          <i
+            class="fa fa-file-excel-o"
+            aria-hidden="true"
+          />
+          {{ $t('momarea.export.btnExport') }}
+        </b-button>
+      </div>
+
+      <hr>
+      <b-table
+        ref="table"
+        v-model:sort-by="sortByModel"
+        striped
+        hover
+        :items="selectedCompanies"
+        :fields="selectedFields"
+        :busy="loading"
+        :v-model="tablevalues"
+        responsive="md"
+        :filter="filterTable"
+        :filter-included-fields="filterOn"
+        :sort-direction="sortDirection"
+        stacked="md"
+        show-empty
+        small
+        :tbody-tr-class="rowClass"
+        @filtered="onFiltered"
+      >
+        <template #cell(name)="row">
+          {{ row.item.name }}
+        </template>
+        <!-- count numbre of employees -->
+        <template #cell(num_employees)="row">
+          {{ row.item.name=="Totale"?row.item.num_employees:row.item.offices.reduce((a, b) => a + b.num_employees, 0) }}
+        </template>
+        <template #cell(moma_name)="row">
+          <div
+            v-for="(user, index) in row.item.users"
+            :key="`moma-name-${user.id || user.username || index}`"
+            class="d-block"
+          >
+            {{ user.first_name }} {{ user.last_name }}
+          </div>
+        </template>
+        <template #cell(moma_email)="row">
+          <div
+            v-for="(user, index) in row.item.users"
+            :key="`moma-email-${user.id || user.username || index}`"
+            class="d-block"
+          >
+            {{ user.username }}
+          </div>
+        </template>
+        <template #cell(offices)="row">
+          <div
+            v-for="(office, index) in row.item.offices"
+            :key="`office-${office.id || office.name || index}`"
+            class="d-block"
+          >
+            {{ office.name }}
+          </div>
+        </template>
+        <template #cell(pscl)="row">
+          <div
+            v-for="(office, index) in row.item.offices"
+            v-if="row.item.name!=='Totale'"
+            :key="`pscl-${office.id || office.name || index}`"
+            class="d-block"
+          >
+            <b-button
+              variant="link"
+              class="p-0"
+              :aria-label="`PSCL ${office.name} — ${office.pscl.length > 0 ? $t('momarea.momarea.statusHasFiles') : $t('momarea.momarea.statusNoFiles')}`"
+              :title="`PSCL ${office.name} — ${office.pscl.length > 0 ? $t('momarea.momarea.statusHasFiles') : $t('momarea.momarea.statusNoFiles')}`"
+              :style="{ color: iconColor(office.pscl) }"
+              @click="DownloadPscl(row.item.id,office.id,row.item.name,office.pscl[office.pscl.length - 1])"
+            >
+              <b-icon
+                :icon="iconDownload(office.pscl)"
+                aria-hidden="true"
+              />
+            </b-button>
+          </div>
+          <template v-if="row.item.name=='Totale'">
+            <div class="d-block">
+              <b-button
+                variant="link"
+                class="p-0"
+                :aria-label="$t('momarea.psclist.titlePSCLZip')"
+                :title="$t('momarea.psclist.titlePSCLZip')"
+                @click="ZipPscl()"
+              >
+                <b-icon
+                  icon="download"
+                  aria-hidden="true"
+                />
+              </b-button>
+            </div>
+          </template>
+        </template>
+        <template #cell(psclName)="row">
+          <div
+            v-for="(office, index) in row.item.offices"
+            v-if="row.item.name!=='Totale'"
+            :key="`pscl-name-${office && (office.id || office.name) || index}`"
+            class="d-block"
+          >
+            <span
+              v-if="office!==null"
+              class="d-block"
+            >
+              {{ office.pscl[office.pscl.length - 1] }}
+            </span>
+          </div>
+        </template>
+        <template #cell(survey)="row">
+          <div
+            v-for="(survey, index) in row.item.surveys"
+            :key="`survey-${survey && (survey.id || survey.name) || index}`"
+            class="d-block"
+          >
+            <span
+              v-if="survey!==null"
+              class="d-block"
+            >
+              {{ survey.name }}
+            </span>
+          </div>
+        </template>
+        <template #cell(surveyresults)="row">
+          <div
+            v-for="(survey, index) in row.item.surveys"
+            v-if="row.item.name!=='Totale'"
+            :key="`survey-results-${survey && (survey.id || survey.name) || index}`"
+            class="d-block"
+          >
+            <div v-if="survey!==null">
+              <b-button
+                variant="link"
+                class="p-0"
+                :aria-label="`${$t('momarea.export.fieldSurveyResults')} ${survey.name}`"
+                :title="`${$t('momarea.export.fieldSurveyResults')} ${survey.name}`"
+                @click="exportSurveyData(survey.id,survey.name)"
+              >
+                <b-icon
+                  icon="download"
+                  aria-hidden="true"
+                />
+              </b-button>
+            </div>
+          </div>
+          <template v-if="row.item.name=='Totale'">
+            <div class="d-block">
+              <b-button
+                variant="link"
+                class="p-0"
+                :aria-label="$t('momarea.export.fieldSurveyResults')"
+                :title="$t('momarea.export.fieldSurveyResults')"
+                @click="Export()"
+              >
+                <b-icon
+                  icon="download"
+                  aria-hidden="true"
+                />
+              </b-button>
+            </div>
+          </template>
+        </template>
+        <template #cell(impatti)="row">
+          <div
+            v-for="(survey, index) in row.item.surveys"
+            :key="`impatti-${survey && (survey.id || survey.name) || index}`"
+            class="d-block"
+          >
+            <div v-if="row.item.offices[0] !== undefined && row.item.offices[0].pscl && row.item.offices[0].pscl.length > 0">
+              <b-button
+                variant="link"
+                class="p-0"
+                :aria-label="`${$t('momarea.export.fieldImpacts')} ${row.item.offices[0].name}`"
+                :title="`${$t('momarea.export.fieldImpacts')} ${row.item.offices[0].name}`"
+                @click="generatePSCLXlsx(row.item.id, row.item.offices[0].id, survey.id, row.item.name, row.item.offices[0].name)"
+              >
+                <b-icon
+                  icon="download"
+                  aria-hidden="true"
+                />
+              </b-button>
+            </div>
+          </div>
+        </template>
+        <template #cell(offices_num)="row">
+          {{ row.item.name=="Totale"?row.item.offices_num:row.item.offices.length }}
+        </template>
+        <template #table-busy>
+          <div class="text-center text-danger my-2">
+            <b-spinner class="align-middle" />
+            <strong>{{ $t('momarea.export.loading') }}</strong>
+          </div>
+        </template>
+      </b-table>
+
+      <div class="d-flex justify-content-center mt-3">
         <b-pagination
           v-model="currentPage"
           :total-rows="totalRows"
           :per-page="perPage"
+          :aria-label="$t('momarea.export.labelPerPage')"
           align="fill"
           size="sm"
           class="my-0"
-        ></b-pagination>
-      </b-col>
-    </b-row>
-    <b-row>
-        <b-col class="d-flex justify-content-center">
-            <b-button block variant="outline-primary" @click="exportXls()">
-                    <i class="fa fa-file-excel-o" aria-hidden="true"></i>
-                        Esporta
-                </b-button>
-        </b-col>
-    </b-row>
-    <hr />
-    <!-- Dynamically render checkboxes for each field -->
-    <b-form-group label="Colonne attive" label-cols-lg="2" v-slot="{ ariaDescribedby }">
-        <div class="checkbox-inline-container">
-        <div v-for="(field, index) in fields" :key="index">
-        <b-form-checkbox v-model="checkboxStates[field.key]" :aria-describedby="ariaDescribedby" inline>
-            {{ field.label }}
-        </b-form-checkbox>
-        </div>
-        </div>
-    </b-form-group>
+        />
+      </div>
+    </b-card>
 
-    <hr />
-    <b-table 
-    ref="table" 
-    striped 
-    hover 
-    :items="selectedCompanies" 
-    :fields="selectedFields" 
-    :busy="loading" 
-    :v-model="tablevalues" 
-    responsive="md"
-    :current-page="currentPage"
-    :per-page="perPage"
-    :filter="filterTable"
-    :filter-included-fields="filterOn"
-    :sort-by.sync="sortBy"
-    :sort-desc.sync="sortDesc"
-    :sort-direction="sortDirection"
-    stacked="md"
-    show-empty
-    small
-    @filtered="onFiltered"
-      >
-        <template #cell(name)="row">
-            {{ row.item.name }}
-        </template>
-        <!-- count numbre of employees -->
-        <template #cell(num_employees)="row">
-            {{ row.item.name=="Totale"?row.item.num_employees:row.item.offices.reduce((a, b) => a + b.num_employees, 0) }}
-        </template>
-        <template #cell(moma_name)="row">
-            <template v-for="user in row.item.users">
-                <b-tr>
-                    {{ user.first_name }} {{ user.last_name }}
-                </b-tr>
-            </template>
-        </template>
-        <template #cell(moma_email)="row">
-            <template v-for="user in row.item.users">
-                <b-tr>
-                    {{ user.username }}
-                </b-tr>
-            </template>
-        </template>
-
-        <template #cell(offices)="row">
-            <template v-for="office in row.item.offices">
-                <b-tr>{{ office.name }}</b-tr>
-            </template>
-            <!-- {{ row.item.offices.length>0 ? "" : "" }}
-                <b-tr v-for="row.item.offices.map(office => office.name) ">{{}}</b-tr> -->
-        </template>
-        <template #cell(pscl)="row">
-            <template v-for="office in row.item.offices" v-if="row.item.name!=='Totale'">
-                <b-tr>
-                    <b-icon @click="DownloadPscl(row.item.id,office.id,row.item.name,office.pscl[office.pscl.length - 1])" :icon="iconDownload(office.pscl)" :title="`PSCL ${office.name}`" v-bind:style="{ color: iconColor(office.pscl) }">
-                    </b-icon>
-                </b-tr>
-            </template>
-            <template v-if="row.item.name=='Totale'">
-                <b-tr>
-                    <b-icon @click="ZipPscl()" icon="download" title="PSCL Zip">
-                    </b-icon>
-                </b-tr>
-            </template>
-        </template>
-        <template #cell(psclName)="row">
-            <template v-for="office in row.item.offices" v-if="row.item.name!=='Totale'">
-                <b-tr v-if="office!==null">{{ office.pscl[office.pscl.length - 1] }}</b-tr>
-            </template>
-        </template>
-        <template #cell(survey)="row">
-            <template v-for="survey in row.item.surveys">
-                <b-tr v-if="survey!==null">{{ survey.name }}</b-tr>
-            </template>
-        </template>
-        <template #cell(surveyresults)="row">
-            <template v-for="survey in row.item.surveys" v-if="row.item.name!=='Totale'">
-                <b-tr v-if="survey!==null">
-                    <b-icon @click="exportSurveyData(survey.id,survey.name)" icon="download" :title="`Risultati Questionario ${survey.name}`">
-                    </b-icon>
-                </b-tr>
-            </template>
-            <template v-if="row.item.name=='Totale'">
-                <b-tr>
-                    <b-icon @click="Export()" icon="download" title="Risultati Questionario tutti i Questionari">
-                    </b-icon>
-                </b-tr>
-            </template>
-        </template>
-        <template #cell(impatti)="row">
-            <template v-for=" survey in  row.item.surveys">
-                <b-tr v-if="row.item.offices[0] !== undefined">
-                    <b-icon @click="generatePSCLXlsx( survey.id,row.item.offices[0].id,row.item.name,row.item.offices[0].name)" icon="download" :title="`Foglio Impatti ${row.item.offices[0].name}`">
-                    </b-icon>
-                </b-tr>
-            </template>
-        </template>
-        <template #cell(offices_num)="row">
-            {{ row.item.name=="Totale"?row.item.offices_num:row.item.offices.length }}
-        </template>
-        <template #table-busy>
-            <div class="text-center text-danger my-2">
-                <b-spinner class="align-middle"></b-spinner>
-                <strong>Loading...</strong>
-            </div>
-        </template>
-    </b-table>
-<template>
-  <div>
-    <!-- Modal for selecting export options -->
-    <b-modal v-model="showModalExport" title="Opzioni di Esportazione" hide-footer>
-      <!-- Buttons Export all or select surveys and questions -->
-      <b-row>
-        <b-col ><b-button @click="AllExportSurveyData('Tutti')" variant="primary">Esporta tutti</b-button> </b-col>
-        <b-col ><b-button @click="showModalForExport()" variant="primary">Esporta selezione</b-button></b-col>
-      </b-row>
-        
-    </b-modal>
-  </div>
-</template>
-
-<template>
-  <div>
-
-    <!-- Modal for selecting surveys and questions -->
-    <b-modal v-model="showModalSurveys" title="Esporta i resultati" hide-footer>
-      <!-- Survey selection -->
-    <label for="surveySelect">Scegli i questionari che vuoi esportare:</label>
-      <b-form-select id="surveySelect" v-model="selectedSurvey" multiple>
-        <option v-for="survey in surveys" :value="survey.id">{{ survey.name }}</option>
-      </b-form-select>
-
-      <!-- next button open modalquestions and close showModalSurveys -->
-        <b-button @click="showModalForQuestions()" variant="primary">Seguente</b-button>
-    </b-modal>
-  </div>
-</template>
-<template>
-  <div>
-
-    <!-- Modal for selecting surveys and questions -->
-    <b-modal v-model="showModalQuestions" title="Esporta i resultati" hide-footer>
-        <!-- busy until get questions -->
-        <b-spinner v-if="questions.length===0" label="Loading..."></b-spinner>
-
-      <!-- Question selection -->
-      <div v-if="questions.length!=0">
-        <label for="questionSelect">Scegli le domande che desideri esportare nei risultati:</label>
-        <b-form-select id="questionSelect" v-model="selectedQuestions" multiple>
-            <option v-for="question in questions" :value="question.id">{{ question.text }}</option>
-        </b-form-select>
-
-      <!-- Export button -->
-      <b-button @click="AllExportSurveyData('Tutti',0)" variant="primary">Esporta</b-button>
+    <div>
+      <div>
+        <!-- Modal for selecting export options -->
+        <b-modal
+          v-model="showModalExport"
+          :title="$t('momarea.export.modalTitleExportOptions')"
+          hide-footer
+        >
+          <!-- Buttons Export all or select surveys and questions -->
+          <b-row>
+            <b-col>
+              <b-button
+                variant="primary"
+                @click="AllExportSurveyData('Tutti')"
+              >
+                {{ $t('momarea.export.btnExportAll') }}
+              </b-button>
+            </b-col>
+            <b-col>
+              <b-button
+                variant="primary"
+                @click="showModalForExport()"
+              >
+                {{ $t('momarea.export.btnExportSelection') }}
+              </b-button>
+            </b-col>
+          </b-row>
+        </b-modal>
+      </div>
     </div>
-     
-    </b-modal>
+
+    <div>
+      <div>
+        <!-- Modal for selecting surveys and questions -->
+        <b-modal
+          v-model="showModalSurveys"
+          :title="$t('momarea.export.modalTitleExportResults')"
+          hide-footer
+        >
+          <!-- Survey selection -->
+          <label for="surveySelect">{{ $t('momarea.export.labelChooseSurveys') }}</label>
+          <b-form-select
+            id="surveySelect"
+            v-model="selectedSurvey"
+            multiple
+          >
+            <option
+              v-for="survey in surveys"
+              :key="survey.id"
+              :value="survey.id"
+            >
+              {{ survey.name }}
+            </option>
+          </b-form-select>
+
+          <!-- next button open modalquestions and close showModalSurveys -->
+          <b-button
+            variant="primary"
+            @click="showModalForQuestions()"
+          >
+            {{ $t('momarea.export.btnNext') }}
+          </b-button>
+        </b-modal>
+      </div>
+    </div>
+
+    <div>
+      <div>
+        <!-- Modal for selecting surveys and questions -->
+        <b-modal
+          v-model="showModalQuestions"
+          :title="$t('momarea.export.modalTitleExportResults')"
+          hide-footer
+        >
+          <!-- busy until get questions -->
+          <b-spinner
+            v-if="questions.length===0"
+            :label="$t('momarea.export.loading')"
+          />
+
+          <!-- Question selection -->
+          <div v-if="questions.length!=0">
+            <label for="questionSelect">{{ $t('momarea.export.labelChooseQuestions') }}</label>
+            <b-form-select
+              id="questionSelect"
+              v-model="selectedQuestions"
+              multiple
+            >
+              <option
+                v-for="question in questions"
+                :key="question.id"
+                :value="question.id"
+              >
+                {{ question.text }}
+              </option>
+            </b-form-select>
+
+            <!-- Export button -->
+            <b-button
+              variant="primary"
+              @click="AllExportSurveyData('Tutti',0)"
+            >
+              {{ $t('momarea.export.btnExport') }}
+            </b-button>
+          </div>
+        </b-modal>
+      </div>
+    </div>
   </div>
 </template>
-
-    
-</div>
-</template>
-
 
 <script>
 import UserService from "@/services/user.service";
 import AreaService from "../area.service";
 import Util from "@/mixing/util";
-var mime = require("mime-types");
-import XLSX from "xlsx";
+import bTableSort from "@/mixing/bTableSort";
+import mime from "mime-types";
+import * as XLSX from "xlsx";
+import { toast } from "@/services/notification.service";
 
 export default {
-    mixins: [Util],
+    name: "MomareaExport",
+    mixins: [Util, bTableSort],
     data() {
         return {
-            companies: [{
-                    id: 1,
-                    name: 'Company A',
-                    offices: 'Area 1'
-                },
-                {
-                    id: 2,
-                    name: 'Company B',
-                    offices: 'Area 2'
-                },
-                {
-                    id: 3,
-                    name: 'Company C',
-                    offices: 'Area 1'
-                },
-                // Add more companies here
-            ],
+            companies: [],
             fields: [
                 // { key: 'id', label: 'ID' },
                 {
                     key: 'name',
-                    label: 'Nome',
+                    label: this.$t('momarea.export.fieldName'),
                     sortable: true
 
                 },
                 //add moma Area name and moma Area email
                 {
                     key: 'moma_name',
-                    label: 'Nome Mobility Manager',
+                    label: this.$t('momarea.export.fieldMomaName'),
                     sortable: false
                 },
                 {
                     key: 'moma_email',
-                    label: 'Email Mobility Manager',
+                    label: this.$t('momarea.export.fieldMomaEmail'),
                     sortable: false
                 },
                 {
                     key: 'num_employees',
-                    label: 'Numero Impiegati / Studenti',
+                    label: this.$t('momarea.export.fieldNumEmployees'),
                     sortable: true
                 },
                 {
                     key: 'offices_num',
-                    label: 'numero di sedi',
+                    label: this.$t('momarea.export.fieldOfficesNum'),
                     sortable: true
                 },
                 {
                     key: 'offices',
-                    label: 'Sedi',
+                    label: this.$t('momarea.export.fieldOffices'),
                     sortable: false
                 },
                 {
                     key: 'pscl',
-                    label: 'PSCL'
+                    label: this.$t('momarea.export.fieldPSCL')
                 },
                 {
                     key: 'psclName',
-                    label: 'Nome PSCL',
+                    label: this.$t('momarea.export.fieldPSCLName'),
                     sortable: false
                 },
                 {
                     key: 'survey',
-                    label: 'Questionari',
+                    label: this.$t('momarea.export.fieldSurvey'),
                     sortable: false
                 },
                 {
                     key: 'surveyresults',
-                    label: 'Risultati Questionario'
+                    label: this.$t('momarea.export.fieldSurveyResults')
                 },
                 {
                     key: 'impatti',
-                    label: 'Foglio Impatti'
+                    label: this.$t('momarea.export.fieldImpacts')
                 },
-
             ],
             filter: {
                 type: null,
@@ -482,33 +680,38 @@ export default {
             statsIntervalId: null,
             checkboxStates: {},
             // selectedCompanies: [],
-            pscl_options: [{
+            pscl_options: [
+                {
                     id: 1,
-                    name: 'No pscl'
+                    name: this.$t('momarea.export.psclOptionNoPscl')
                 },
                 {
                     id: 2,
-                    name: 'Si pscl'
+                    name: this.$t('momarea.export.psclOptionYesPscl')
                 },
                 {
                     id: 3,
-                    name: 'Tutti'
+                    name: this.$t('momarea.export.psclOptionAll')
                 },
                 {
                     id: 4,
-                    name: 'Pscl 2024'
+                    name: this.$t('momarea.export.psclOptionPscl2024')
                 },
                 {
                     id: 5,
-                    name: 'No Pscl 2024'
+                    name: this.$t('momarea.export.psclOptionNoPscl2024')
                 },
-                // Add more pscl here
             ],
             pscl: 3, 
-            // totalRows: 1,
             currentPage: 1,
             perPage: 10,
             pageOptions: [10, 25, 50],
+            pagination: {
+                total: 0,
+                page: 1,
+                limit: 10,
+                pageCount: 1,
+            },
             sortBy: '',
             sortDesc: false,
             sortDirection: 'asc',
@@ -517,76 +720,49 @@ export default {
             filtersize: 0,
             };
     },
-    async created() {
-        this.loading = true;
-        this.getYear();
-        let r = await AreaService.getExportList(this.year);
-        this.companies = r.data.companies;
-        let res = await UserService.getCompanyTypes();
-        this.company_types = res.data.company_types;
-        this.company_types.unshift(
-			{
-					id: null,
-					name: "Tutte",
-				});
-        this.filter.type=this.company_types[0].id;
-        // add last row with sum of employees and offices
-        this.companies.push({
-            id: 0,
-            name: "Totale",
-            moma_name: "",
-            offices: [],
-            // sum all employees
-            num_employees: this.companies.reduce((total, company) => {
-                return total + company.offices.reduce((total, office) => total + (office.num_employees != null ? office.num_employees : 0), 0);
-            }, 0),
-            // sum all offices
-            offices_num: this.companies.reduce((acc, company) => {
-                return acc + company.offices.length;
-            }, 0),
-        });
-        this.filtersize = this.companies.length
-        // this.selectedCompanies=this.companies;
-        // Initialize checkboxStates based on fields
-        this.fields.forEach(field => {
-        this.$set(this.checkboxStates, field.key, true);
-        });
-        
-        
-        this.loading = false;            
-    },
     computed: {
         selectedFields() {
-        // Filter fields based on checkbox states 
+        // Filter fields based on checkbox states
         return this.fields.filter(field => this.checkboxStates[field.key]);
-        
+
+        },
+        allColumnsSelected() {
+            return this.fields.every(field => this.checkboxStates[field.key]);
         },
         selectedCompanies() {
-            console.log("companiesWithEmptyPscl:" ,this.pscl);
+            // The "Totale" summary row (offices: []) must survive every PSCL filter so
+            // it stays visible as the pinned last row on all pages.
+            const keepTotal = company => company.name === 'Totale';
             if(this.pscl==1){
                 return this.companies.filter(company =>
+                    keepTotal(company) ||
                     // Check if company.offices is an array before calling .every()
-                    Array.isArray(company.offices) && company.offices.length != 0 && company.offices.every(office => office.pscl.length == 0)
+                    (Array.isArray(company.offices) && company.offices.length != 0 && company.offices.every(office => office.pscl.length == 0))
                 );
             }else if(this.pscl==2){
                 return this.companies.filter(company =>
+                    keepTotal(company) ||
                     // Check if company.offices is an array before calling .every()
-                    Array.isArray(company.offices) && company.offices.length != 0 && company.offices.some(office => office.pscl.length >0)
+                    (Array.isArray(company.offices) && company.offices.length != 0 && company.offices.some(office => office.pscl.length >0))
                 );
-                
+
             }else if(this.pscl==3){
                 return this.companies;
             }else if(this.pscl==4){
                 return this.companies.filter(company =>
+                    keepTotal(company) ||
                     // Check if company.offices is an array before calling .every()
-                    Array.isArray(company.offices) && company.offices.length != 0 && company.offices.some(office => office.pscl.length >0 && office.pscl[office.pscl.length - 1].includes("2024"))
+                    (Array.isArray(company.offices) && company.offices.length != 0 && company.offices.some(office => office.pscl.length >0 && office.pscl[office.pscl.length - 1].includes("2024")))
                 );
             }else if(this.pscl==5){
                 return this.companies.filter(company =>
+                    keepTotal(company) ||
                     // Check if company.offices is an array before calling .every()
-                    Array.isArray(company.offices) && company.offices.length != 0 && company.offices.every(office => office.pscl.length >0 && !office.pscl[office.pscl.length - 1].includes("2024"))
+                    (Array.isArray(company.offices) && company.offices.length != 0 && company.offices.every(office => office.pscl.length >0 && !office.pscl[office.pscl.length - 1].includes("2024")))
                 );
             }
+
+            return [];
         },
         sortOptions() {
             // Create an options list from our fields
@@ -597,14 +773,47 @@ export default {
             })
         },
         totalRows() {
-            if(this.filtersize<this.selectedCompanies.length){
-                return this.filtersize;
-            }else{
-                return this.selectedCompanies.length;
+            if (this.filterTable || this.pscl !== 3) {
+                return this.filtersize || this.selectedCompanies.length;
             }
-            // return this.selectedCompanies.length
+
+            return this.pagination.total || this.selectedCompanies.length;
         },
 
+    },
+    watch: {
+        async currentPage(newPage, oldPage) {
+            if (newPage !== oldPage) {
+                await this.loadCompanies(newPage);
+            }
+        },
+        async perPage(newValue, oldValue) {
+            if (newValue !== oldValue) {
+                if (this.currentPage !== 1) {
+                    this.currentPage = 1;
+                    return;
+                }
+                await this.loadCompanies(1);
+            }
+        },
+    },
+    async created() {
+        this.getYear();
+        let res = await UserService.getCompanyTypes();
+        this.company_types = res.data.company_types;
+        this.company_types.unshift(
+			{
+					id: null,
+					name: "Tutte",
+				});
+        this.filter.type = this.company_types[0].id;
+        // Start with a compact subset visible; the rest are opt-in via the
+        // "Colonne attive" dropdown.
+        const defaultVisibleColumns = ['name', 'moma_name', 'moma_email', 'offices', 'pscl'];
+        this.fields.forEach(field => {
+            this.checkboxStates[field.key] = defaultVisibleColumns.includes(field.key);
+        });
+        await this.loadCompanies(1);
     },
     // mounted() {
     //   // Set the initial number of items
@@ -624,8 +833,8 @@ export default {
                     const res = await UserService.downloadPSCL(company_id, office_id, fname, this.year);
                     let ext = mime.extension(res.data.type);
                     if (ext === "json") {
-                        this.$bvToast.toast("Nessun file caricato", {
-                            title: "No Uploads",
+                        toast(this.$t('momarea.export.toastNoUploads'), {
+                            title: this.$t('momarea.export.titleNoUploads'),
                             variant: "warning",
                             autoHideDelay: 2000,
                             appendToast: true,
@@ -644,8 +853,8 @@ export default {
                     this.busy = false;
                 }
             } else {
-                this.$bvToast.toast("Nessun file caricato", {
-                    title: "No Uploads",
+                toast(this.$t('momarea.export.toastNoUploads'), {
+                    title: this.$t('momarea.export.titleNoUploads'),
                     variant: "warning",
                     autoHideDelay: 2000,
                     appendToast: true,
@@ -656,14 +865,14 @@ export default {
         async exportSurveyData(survey_id, survey_name) {
             try {
                 this.busy = true;
-                this.$bvToast.toast("Esportazione in corso", {
-                    title: "Esportazione",
+                toast(this.$t('momarea.export.toastExportInProgress'), {
+                    title: this.$t('momarea.export.titleExport'),
                     variant: "info",
                     autoHideDelay: 2000,
                     appendToast: true,
                 });
                 let res = await UserService.exportSurveyData(survey_id);
-                this.$bvToast.toast(res.data.message, {
+                toast(res.data.message, {
 						title: "No Uploads",
 						variant: "warning",
 						autoHideDelay: 2000,
@@ -679,7 +888,7 @@ export default {
                 // let ext = mime.extension(res.data.type);
                 // console.log(res);
                 // // if (ext === "json") {
-                // //     this.$bvToast.toast("Error in questionnaire export", {
+                // //     toast("Error in questionnaire export", {
                 // //         title: "No Uploads",
                 // //         variant: "warning",
                 // //         autoHideDelay: 2000,
@@ -700,10 +909,13 @@ export default {
                 this.busy = false;
             }
         },
-        async generatePSCLXlsx(survey_id, office_id, companyName, officeName) {
+        async generatePSCLXlsx(companyId, officeId, surveyId, companyName, officeName) {
             try {
                 this.busyXlsx = true;
-                const res = await UserService.generatePSCLXlsx(office_id, survey_id);
+                // Service path is /generate-xlsx/{companyId}/{officeId}/{surveyId}/{year}.xlsx —
+                // all four are required (previously only office/survey were sent, in the wrong
+                // slots, producing .../undefined/undefined.xlsx).
+                const res = await UserService.generatePSCLXlsx(companyId, officeId, surveyId, this.year);
                 const url = window.URL.createObjectURL(new Blob([res.data]));
                 const link = document.createElement("a");
                 link.href = url;
@@ -712,8 +924,8 @@ export default {
                 document.body.appendChild(link);
                 link.click();
             } catch (e) {
-                this.$bvToast.toast(String(e), {
-                    title: "Errore",
+                toast(String(e), {
+                    title: this.$t('momarea.export.titleError'),
                     variant: "danger",
                     autoHideDelay: 2000,
                     appendToast: true,
@@ -723,29 +935,68 @@ export default {
                 this.busyXlsx = false;
             }
         },
-        async updateFilter() {
-            await AreaService.getExportList(
-                this.filter.type,
-                this.filter.name
-            ).then((res) => {
-                this.companies = res.data.companies;
+        toggleAllColumns(checked) {
+            this.fields.forEach(field => {
+                this.checkboxStates[field.key] = checked;
             });
-             // add last row with sum of employees and offices
-            this.companies.push({
+        },
+        rowClass(item, type) {
+            if (type === 'row' && item && item.name === 'Totale') {
+                return 'momarea-total-row';
+            }
+
+            return '';
+        },
+        buildSummaryRow(companies) {
+            return {
                 id: 0,
                 name: "Totale",
                 moma_name: "",
                 offices: [],
-                // sum all employees
-                num_employees: this.companies.reduce((total, company) => {
-                    return total + company.offices.reduce((total, office) => total + (office.num_employees != null ? office.num_employees : 0), 0);
+                num_employees: companies.reduce((total, company) => {
+                    return total + company.offices.reduce((officeTotal, office) => officeTotal + (office.num_employees != null ? office.num_employees : 0), 0);
                 }, 0),
-                // sum all offices
-                offices_num: this.companies.reduce((acc, company) => {
+                offices_num: companies.reduce((acc, company) => {
                     return acc + company.offices.length;
                 }, 0),
-            });
-            // this.selectedCompanies=this.companies;
+            };
+        },
+        async loadCompanies(page = 1) {
+            try {
+                this.loading = true;
+                const res = await AreaService.getExportList({
+                    year: this.year,
+                    type: this.filter.type,
+                    q: this.filter.name,
+                    page,
+                    limit: this.perPage,
+                });
+                const companies = Array.isArray(res.data.companies) ? res.data.companies : [];
+                this.pagination = res.data.pagination || {
+                    total: companies.length,
+                    page,
+                    limit: this.perPage,
+                    pageCount: 1,
+                };
+                this.companies = companies.length > 0 ? [...companies, this.buildSummaryRow(companies)] : [];
+                this.filtersize = this.companies.length;
+            } catch (error) {
+                console.log(error);
+                this.companies = [];
+                this.pagination = {
+                    total: 0,
+                    page: 1,
+                    limit: this.perPage,
+                    pageCount: 1,
+                };
+                this.filtersize = 0;
+            } finally {
+                this.loading = false;
+            }
+        },
+        async updateFilter() {
+            this.currentPage = 1;
+            await this.loadCompanies(1);
             localStorage.setItem("filter_company_name", this.filter.name);
             localStorage.setItem("filter_company_type", this.filter.type);
         },
@@ -812,11 +1063,13 @@ export default {
             }
         },
         iconColor(files) {
-            // console.log(files);
+            // AA-compliant success/danger (≥4.5:1 on white); the icon shape
+            // (download vs x-circle) carries the same meaning without relying on
+            // color. Named "green"/"red" failed WCAG 1.4.3 contrast.
             if (files.length > 0) {
-                return "green";
+                return "#198253";
             } else {
-                return "red";
+                return "#b33c12";
             }
         },
         async ZipPscl() {
@@ -847,14 +1100,14 @@ export default {
                 if (all) {
                     this.showModalExport = false;
                     this.selectedSurvey = this.surveys.map((survey) => survey.id);
-                    res = await UserService.exportSurveyData(null,all,exportData);
+                    res = await UserService.exportSurveyData(null,all,all,exportData);
                     
                 }else{
                     
                     // alert if not questions are selected
                     if (this.selectedQuestions.length === 0) {
-                        this.$bvToast.toast("Seleziona almeno una domanda", {
-                            title: "Errore",
+                        toast(this.$t('momarea.export.toastSelectQuestion'), {
+                            title: this.$t('momarea.export.titleError'),
                             variant: "danger",
                             autoHideDelay: 2000,
                             appendToast: true,
@@ -862,17 +1115,17 @@ export default {
                         return;
                     }else{
                         // alert the export is in progress
-                        this.$bvToast.toast("Esportazione in corso", {
-                            title: "Esportazione",
+                        toast(this.$t('momarea.export.toastExportInProgress'), {
+                            title: this.$t('momarea.export.titleExport'),
                             variant: "info",
                             autoHideDelay: 2000,
                             appendToast: true,
                         });
                     }
                     this.showModalQuestions = false;
-                    res = await UserService.exportSurveyData(null,all,exportData);
+                    res = await UserService.exportSurveyData(null,all,all,exportData);
                 }
-                this.$bvToast.toast(res.data.message, {
+                toast(res.data.message, {
 						title: "No Uploads",
 						variant: "warning",
 						autoHideDelay: 2000,
@@ -889,7 +1142,7 @@ export default {
                 // let ext = mime.extension(res.data.type);
                 
                 // if (ext === "json") {
-                //     this.$bvToast.toast("Error in survey export", {
+                //     toast("Error in survey export", {
                 //         title: "No Uploads",
                 //         variant: "warning",
                 //         autoHideDelay: 2000,
@@ -906,9 +1159,8 @@ export default {
                 // link.click();
             } catch (error) {
                 console.log(error);
-                // alert error in export
-                this.$bvToast.toast("Errore in esportazione", {
-                    title: "Errore",
+                toast(this.$t('momarea.export.toastExportError'), {
+                    title: this.$t('momarea.export.titleError'),
                     variant: "danger",
                     autoHideDelay: 2000,
                     appendToast: true,
@@ -941,8 +1193,8 @@ export default {
         async showModalForQuestions() {
             // alert if no survey is selected
             if (this.selectedSurvey === null) {
-                this.$bvToast.toast("Seleziona almeno un questionario", {
-                    title: "Errore",
+                toast(this.$t('momarea.export.toastSelectSurvey'), {
+                    title: this.$t('momarea.export.titleError'),
                     variant: "danger",
                     autoHideDelay: 2000,
                     appendToast: true,
@@ -953,6 +1205,18 @@ export default {
             this.showModalQuestions = true;
             const res = await AreaService.getExportQuestions(null,this.selectedSurvey);
             console.log("res", res);
+            // if res.data.questions is empty alert no questions found
+            if (res.data.questions.length === 0) {
+                toast(this.$t('momarea.export.toastNoQuestionsFound'), {
+                    title: this.$t('momarea.export.titleNoQuestions'),
+                    variant: "warning",
+                    autoHideDelay: 2000,
+                    appendToast: true,
+                });
+                this.showModalSurveys = true;
+                this.showModalQuestions = false;
+                return;
+            }
             // get questions from res.data.questions and add them to this.questions where res.data.questions is an array of questions objects with id and name
             this.questions = res.data.questions.map((question) => {
                 return { id: question.question.id, text: `${question.question.id} - ${question.question.description}` };
@@ -966,18 +1230,17 @@ export default {
                 let res = await UserService.getStatusExport(survey_id);
                 if (res.data == null){
                     this.lock = [false, false, false, false, false];
-                    this.message = "Scegli un'operazione";
+                    this.message = this.$t('momarea.export.messageChooseOperation');
                     return;
                 }
 				console.log("res from getStatusExport",res);
                 let ext = mime.extension(res.data.type);
 				console.log("ext",ext);
-				if(ext === "json")
-				{
+				if(ext === "json") {
 					let message = res.data.message;
 					let lock = res.data.lock;
-					this.$bvToast.toast("In lavorazione", {
-							title: "No Uploads",
+					toast(this.$t('momarea.export.toastInProgress'), {
+							title: this.$t('momarea.export.titleNoUploads'),
 							variant: "warning",
 							autoHideDelay: 2000,
 							appendToast: true,
@@ -988,8 +1251,8 @@ export default {
 				}else{		
 					
 					// alert of the download
-					this.$bvToast.toast("Esportazione completata", {
-						title: "Esportazione",
+					toast(this.$t('momarea.export.toastExportCompleted'), {
+						title: this.$t('momarea.export.titleExport'),
 						variant: "success",
 						autoHideDelay: 2000,
 						appendToast: true,
@@ -1006,19 +1269,16 @@ export default {
 				}
 
             } catch (error) {
-				this.$bvToast.toast(error.message, {
-						title: "No Uploads",
-						variant: "warning",
-						autoHideDelay: 2000,
-						appendToast: true,
-					});
+                toast(error.message, {
+                    title: this.$t('momarea.export.titleNoUploads'),
+                    variant: "warning",
+                    autoHideDelay: 2000,
+                    appendToast: true,
+                });
             }
         },
         onFiltered(filteredItems) {
-        // Trigger pagination to update the number of buttons/pages due to filtering
-        this.filtersize = filteredItems.length
-        console.log(filteredItems);
-        this.currentPage = 1
+        this.filtersize = filteredItems.length;
       }
         
 
@@ -1026,9 +1286,51 @@ export default {
 };
 </script>
 <style>
-/* This CSS ensures that all checkboxes will be displayed inline */
-.checkbox-inline-container > div {
-  display: inline-block;
-  margin-right: 10px; /* Adjust spacing between checkboxes as needed */
+/* Checkbox groups wrap onto multiple lines instead of overflowing on small screens. */
+.checkbox-inline-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+}
+
+/* Shared Paper Dashboard SCSS strips focus outlines app-wide; restore a visible
+   focus indicator scoped to this module (WCAG 2.4.7). */
+.momarea-page :focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+/* Pin the "Totale" summary row to the bottom of the table so it stays visible
+   while scrolling. Opaque background prevents rows showing through. */
+.momarea-page .momarea-total-row > td {
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  font-weight: 600;
+  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.15);
+  z-index: 1;
+}
+
+/* Keep export controls/text above AA contrast on the panel background. */
+.momarea-page .text-muted,
+.momarea-page small,
+.momarea-page .small,
+.momarea-page .page-link,
+.momarea-page .btn-link,
+.momarea-page .custom-select,
+.momarea-page .form-control,
+.momarea-page .table th,
+.momarea-page .table td,
+.momarea-page .table caption {
+  color: #495057 !important;
+}
+
+.momarea-page .btn:disabled,
+.momarea-page .btn.disabled,
+.momarea-page .page-item.disabled .page-link,
+.momarea-page .custom-select:disabled,
+.momarea-page [aria-disabled="true"] {
+  color: #495057 !important;
+  opacity: 1 !important;
 }
 </style>

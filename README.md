@@ -37,7 +37,7 @@ You need a running LAMPP server with PHP 7.2+, MySQL or MariaDB, Apache or Nginx
 
 # Authors
 Settore Mobilità Sostenibile 5T (Customer) - mobilita.sostenibile@5t.torino.it
-Massimo INFUNTI (Sw Architect and Main Developer) - massimoi@mobilitySquare.eu
+Massimo INFUNTI (Sw Architect and Main Developer)
 Marco Toldo (Developer)
 Sebastian Rojas (Developer)
 
